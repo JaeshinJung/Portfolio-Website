@@ -2,31 +2,88 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Professional experience of Jaeshin Jung — military leadership and technical roles.">
     <title>Experience | Jaeshin Jung</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div class="stars" id="stars-bg"></div>
+
     <nav>
         <ul>
             <li><a href="index.html">Home</a></li>
             <li><a href="experience.html" class="active">Experience</a></li>
             <li><a href="projects.html">Projects</a></li>
-            <li><a href="skills-awards.html">Skills/Awards</a></li>
+            <li><a href="skills-awards.html">Skills</a></li>
         </ul>
     </nav>
 
     <div class="container">
-        <h2>Professional Experience</h2>
-        <div class="card">
-            <h3>Squad Leader (Section Chief)</h3>
-            <p class="org">Republic of Korea Army | Gangwon-do, South Korea</p>
-            <p class="date">July 2023 – Jan 2025</p>
-            <ul>
-                <li><strong>Command & Control:</strong> Acted as a critical interface between FDC and the crew, parsing targeting data with zero latency.</li>
-                <li><strong>Operational Execution:</strong> Ensured 100% mission accuracy and safety for K105A1 howitzer unit.</li>
-                <li><strong>Team Leadership:</strong> Led a 5-member squad in high-pressure environments, fostering disciplined communication.</li>
-            </ul>
+        <h2>// Experience</h2>
+        <div id="experience-list">
+            <p class="loading-text">Loading data...</p>
         </div>
     </div>
+
+    <script type="module">
+        import { db } from './firebase-config.js';
+        import { collection, getDocs, orderBy, query } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const container = document.getElementById('experience-list');
+
+        async function loadExperiences() {
+            try {
+                const q = query(collection(db, 'experiences'), orderBy('order', 'asc'));
+                const snapshot = await getDocs(q);
+
+                if (snapshot.empty) {
+                    container.innerHTML = '<p class="empty-state">No experience data yet. Add entries from the admin panel.</p>';
+                    return;
+                }
+
+                container.innerHTML = '';
+                snapshot.forEach(doc => {
+                    const d = doc.data();
+                    const achievementsHTML = (d.achievements || [])
+                        .map(a => `<li>${a}</li>`)
+                        .join('');
+
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.innerHTML = `
+                        <h3>${escapeHtml(d.role || '')}</h3>
+                        <p class="org">${escapeHtml(d.company || '')} | ${escapeHtml(d.location || '')}</p>
+                        <p class="date">${escapeHtml(d.dateRange || '')}</p>
+                        <ul>${achievementsHTML}</ul>
+                    `;
+                    container.appendChild(card);
+                });
+            } catch (err) {
+                console.error('Firestore error:', err);
+                container.innerHTML = '<p class="empty-state">Failed to load experiences.</p>';
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        loadExperiences();
+
+        // Stars
+        const starsContainer = document.getElementById('stars-bg');
+        for (let i = 0; i < 60; i++) {
+            const star = document.createElement('div');
+            star.classList.add('star');
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            star.style.animationDelay = Math.random() * 3 + 's';
+            star.style.animationDuration = (2 + Math.random() * 3) + 's';
+            starsContainer.appendChild(star);
+        }
+    </script>
 </body>
 </html>
