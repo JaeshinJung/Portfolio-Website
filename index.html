@@ -3,17 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Jaeshin Jung — Computer Science @ Texas A&M | Aspiring Game Developer. Portfolio showcasing C++, Unity, and game development projects.">
     <title>Jaeshin Jung | Portfolio</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
+    <!-- Pixel Stars Background -->
+    <div class="stars" id="stars-bg"></div>
+
     <nav>
         <ul>
             <li><a href="index.html" class="active">Home</a></li>
             <li><a href="experience.html">Experience</a></li>
             <li><a href="projects.html">Projects</a></li>
-            <li><a href="skills-awards.html">Skills/Awards</a></li>
+            <li><a href="skills-awards.html">Skills</a></li>
         </ul>
     </nav>
 
@@ -21,7 +25,7 @@
         <img src="profile.jpg" alt="Jaeshin Jung" class="profile-img">
         <h1>Jaeshin Jung</h1>
         <p class="subtitle">Computer Science @ Texas A&M University | Aspiring Game Developer</p>
-        
+
         <div class="bio">
             <p>Computer Science major with a minor in Game Design (GPA 3.83). Focused on high-performance C++ systems and immersive game experiences in Unity.</p>
         </div>
@@ -32,5 +36,19 @@
             <a href="https://github.com/JaeshinJung" target="_blank"><i class="fab fa-github"></i> GitHub</a>
         </div>
     </div>
+
+    <script>
+        // Generate random pixel stars
+        const starsContainer = document.getElementById('stars-bg');
+        for (let i = 0; i < 60; i++) {
+            const star = document.createElement('div');
+            star.classList.add('star');
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            star.style.animationDelay = Math.random() * 3 + 's';
+            star.style.animationDuration = (2 + Math.random() * 3) + 's';
+            starsContainer.appendChild(star);
+        }
+    </script>
 </body>
 </html>

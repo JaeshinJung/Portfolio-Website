@@ -2,48 +2,95 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Technical projects by Jaeshin Jung — game engines, horror games, and systems programming.">
     <title>Projects | Jaeshin Jung</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div class="stars" id="stars-bg"></div>
+
     <nav>
         <ul>
             <li><a href="index.html">Home</a></li>
             <li><a href="experience.html">Experience</a></li>
             <li><a href="projects.html" class="active">Projects</a></li>
-            <li><a href="skills-awards.html">Skills/Awards</a></li>
+            <li><a href="skills-awards.html">Skills</a></li>
         </ul>
     </nav>
 
     <div class="container">
-        <h2>Technical Projects</h2>
-        <div class="project-grid">
-            <div class="project-card">
-                <a href="https://github.com/JaeshinJung/Orange.git" target="_blank">
-                    <img src="engine-thumb.jpg" alt="Custom 2D Engine">
-                    <h3>Custom 2D Game Engine</h3>
-                </a>
-                <p>C++, SDL2. High-performance arcade shooter with custom collision detection.</p>
-                <a href="#" class="video-btn">View Demo Video</a>
-            </div>
-
-            <div class="project-card">
-                <a href="https://github.com/JaeshinJung/HorrorSchool.git" target="_blank">
-                    <img src="horror-thumb.jpg" alt="Horror School">
-                    <h3>Horror School</h3>
-                </a>
-                <p>Unity, C#. Solo psychological horror game with procedural anomaly triggering.</p>
-                <a href="#" class="video-btn">View Demo Video</a>
-            </div>
-
-            <div class="project-card">
-                <a href="https://github.com/JaeshinJung?tab=repositories" target="_blank">
-                    <img src="thread-thumb.jpg" alt="Thread Pool">
-                    <h3>Thread Pool Library</h3>
-                </a>
-                <p>C++17. High-throughput task scheduler using Producer-Consumer pattern.</p>
-            </div>
+        <h2>// Projects</h2>
+        <div class="project-grid" id="project-list">
+            <p class="loading-text" style="grid-column: 1 / -1;">Loading data...</p>
         </div>
     </div>
+
+    <script type="module">
+        import { db } from './firebase-config.js';
+        import { collection, getDocs, orderBy, query } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const container = document.getElementById('project-list');
+
+        async function loadProjects() {
+            try {
+                const q = query(collection(db, 'projects'), orderBy('order', 'asc'));
+                const snapshot = await getDocs(q);
+
+                if (snapshot.empty) {
+                    container.innerHTML = '<p class="empty-state" style="grid-column:1/-1;">No projects yet. Add entries from the admin panel.</p>';
+                    return;
+                }
+
+                container.innerHTML = '';
+                snapshot.forEach(doc => {
+                    const d = doc.data();
+                    const card = document.createElement('div');
+                    card.className = 'project-card';
+
+                    const imgTag = d.imageUrl
+                        ? `<img src="${escapeHtml(d.imageUrl)}" alt="${escapeHtml(d.title)}">`
+                        : '';
+
+                    const demoBtn = d.demoUrl
+                        ? `<a href="${escapeHtml(d.demoUrl)}" class="video-btn" target="_blank">&#9654; View Demo</a>`
+                        : '';
+
+                    card.innerHTML = `
+                        <a href="${escapeHtml(d.repoUrl || '#')}" target="_blank">
+                            ${imgTag}
+                            <h3>${escapeHtml(d.title || 'Untitled')}</h3>
+                        </a>
+                        <p>${escapeHtml(d.description || '')}</p>
+                        ${demoBtn}
+                    `;
+                    container.appendChild(card);
+                });
+            } catch (err) {
+                console.error('Firestore error:', err);
+                container.innerHTML = '<p class="empty-state" style="grid-column:1/-1;">Failed to load projects.</p>';
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        loadProjects();
+
+        // Stars
+        const starsContainer = document.getElementById('stars-bg');
+        for (let i = 0; i < 60; i++) {
+            const star = document.createElement('div');
+            star.classList.add('star');
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            star.style.animationDelay = Math.random() * 3 + 's';
+            star.style.animationDuration = (2 + Math.random() * 3) + 's';
+            starsContainer.appendChild(star);
+        }
+    </script>
 </body>
 </html>
