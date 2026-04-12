@@ -163,9 +163,10 @@ nav ul li a.active {
    LAYOUT
    ============================================================ */
 .container {
-  max-width: 960px;
+  width: 95%;
+  max-width: 1600px;
   margin: 0 auto;
-  padding: 48px 24px 72px;
+  padding: 48px 32px 72px;
 }
 
 /* ============================================================
@@ -446,17 +447,22 @@ h2::after {
    ============================================================ */
 .project-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 28px;
+  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  gap: 40px;
+  justify-content: center;
 }
 
 .project-card {
   background: var(--bg-card);
-  padding: 22px;
+  padding: 25px;
   box-shadow: var(--pixel-shadow);
   text-align: left;
   transition: all var(--transition-speed);
   position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .project-card:hover {
@@ -494,9 +500,10 @@ h2::after {
 
 .project-card p {
   font-family: var(--font-body);
-  font-size: 14px;
+  font-size: 13px;
   color: var(--text-secondary);
   line-height: 1.8;
+  flex-grow: 1;
 }
 
 .video-btn {
@@ -512,6 +519,20 @@ h2::after {
 .video-btn:hover {
   text-shadow: 0 0 6px rgba(247, 118, 142, 0.5);
   color: #ffa0b4;
+}
+
+/* Project Card Actions Row */
+.project-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+
+.repo-btn {
+  font-size: 8px;
+  padding: 8px 16px;
 }
 
 /* ============================================================
@@ -851,6 +872,62 @@ h2::after {
   margin-top: 20px;
 }
 
+/* Retro Pixel Checkbox */
+.pixel-checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-pixel);
+  font-size: 9px;
+  color: var(--neon-cyan);
+  cursor: pointer;
+  user-select: none;
+  padding: 4px 0;
+}
+
+.pixel-checkbox-label input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.pixel-checkbox-box {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  background: var(--bg-primary);
+  flex-shrink: 0;
+  box-shadow:
+    3px 0 0 0 var(--text-muted),
+    -3px 0 0 0 var(--text-muted),
+    0 3px 0 0 var(--text-muted),
+    0 -3px 0 0 var(--text-muted);
+  transition: all 0.15s steps(3);
+  position: relative;
+}
+
+.pixel-checkbox-label input[type="checkbox"]:checked + .pixel-checkbox-box {
+  background: var(--neon-green);
+  box-shadow:
+    3px 0 0 0 var(--neon-green),
+    -3px 0 0 0 var(--neon-green),
+    0 3px 0 0 var(--neon-green),
+    0 -3px 0 0 var(--neon-green);
+}
+
+.pixel-checkbox-label input[type="checkbox"]:checked + .pixel-checkbox-box::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-pixel);
+  font-size: 11px;
+  color: var(--bg-primary);
+  line-height: 1;
+}
+
 /* Admin Item List */
 .admin-item {
   background: var(--bg-secondary);
@@ -933,6 +1010,10 @@ h2::after {
 /* ============================================================
    RESPONSIVE
    ============================================================ */
+@media (max-width: 1024px) {
+  .project-grid { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 28px; }
+}
+
 @media (max-width: 768px) {
   body { font-size: 14px; }
   nav ul { flex-wrap: wrap; gap: 4px; }
@@ -940,6 +1021,7 @@ h2::after {
   .main-hero h1 { font-size: 16px; }
   .subtitle { font-size: 12px; }
   .project-grid { grid-template-columns: 1fr; }
+  .project-card { max-width: 100%; }
   .admin-header { flex-direction: column; gap: 14px; text-align: center; }
   .admin-item { flex-direction: column; }
   .contact-links { flex-direction: column; align-items: center; }
