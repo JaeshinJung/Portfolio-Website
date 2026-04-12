@@ -51,6 +51,8 @@
                     const card = document.createElement('div');
                     card.className = 'project-card';
 
+                    const isPublic = d.isRepoPublic !== false; // backward compat
+
                     const imgTag = d.imageUrl
                         ? `<img src="${escapeHtml(d.imageUrl)}" alt="${escapeHtml(d.title)}">`
                         : '';
@@ -59,14 +61,29 @@
                         ? `<a href="${escapeHtml(d.demoUrl)}" class="video-btn" target="_blank">&#9654; View Demo</a>`
                         : '';
 
+                    // Build the card HTML (image + title wrapped in a div, not a link)
                     card.innerHTML = `
-                        <a href="${escapeHtml(d.repoUrl || '#')}" target="_blank">
+                        <div class="project-card-header">
                             ${imgTag}
                             <h3>${escapeHtml(d.title || 'Untitled')}</h3>
-                        </a>
+                        </div>
                         <p>${escapeHtml(d.description || '')}</p>
-                        ${demoBtn}
+                        <div class="project-card-actions">
+                            <button class="pixel-btn repo-btn" data-repo-public="${isPublic}" data-repo-url="${escapeHtml(d.repoUrl || '')}" data-private-msg="${escapeHtml(d.privateMessage || '')}">Repository</button>
+                            ${demoBtn}
+                        </div>
                     `;
+
+                    // Attach click handler to the Repository button
+                    const repoBtn = card.querySelector('.repo-btn');
+                    repoBtn.addEventListener('click', () => {
+                        if (repoBtn.dataset.repoPublic === 'true' && repoBtn.dataset.repoUrl) {
+                            window.open(repoBtn.dataset.repoUrl, '_blank');
+                        } else {
+                            alert(repoBtn.dataset.privateMsg || 'Due to security regulations, the code is kept confidential.');
+                        }
+                    });
+
                     container.appendChild(card);
                 });
             } catch (err) {

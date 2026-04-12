@@ -11,15 +11,15 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 // ─── DOM References ──────────────────────────────
-const loginView     = document.getElementById('login-view');
+const loginView = document.getElementById('login-view');
 const dashboardView = document.getElementById('dashboard-view');
-const loginBtn      = document.getElementById('login-btn');
-const logoutBtn     = document.getElementById('logout-btn');
-const loginEmail    = document.getElementById('login-email');
+const loginBtn = document.getElementById('login-btn');
+const logoutBtn = document.getElementById('logout-btn');
+const loginEmail = document.getElementById('login-email');
 const loginPassword = document.getElementById('login-password');
-const loginError    = document.getElementById('login-error');
-const userEmailEl   = document.getElementById('user-email');
-const toastEl       = document.getElementById('toast');
+const loginError = document.getElementById('login-error');
+const userEmailEl = document.getElementById('user-email');
+const toastEl = document.getElementById('toast');
 
 // ─── Auth State ──────────────────────────────────
 onAuthStateChanged(auth, user => {
@@ -39,7 +39,7 @@ onAuthStateChanged(auth, user => {
 loginBtn.addEventListener('click', async () => {
     loginError.textContent = '';
     const email = loginEmail.value.trim();
-    const pw    = loginPassword.value;
+    const pw = loginPassword.value;
     if (!email || !pw) { loginError.textContent = 'Fill in all fields.'; return; }
     try {
         await signInWithEmailAndPassword(auth, email, pw);
@@ -82,20 +82,35 @@ function esc(text) {
 // ============================================================
 // PROJECTS CRUD
 // ============================================================
-const projTitle     = document.getElementById('proj-title');
-const projImage     = document.getElementById('proj-image');
-const projRepo      = document.getElementById('proj-repo');
-const projDemo      = document.getElementById('proj-demo');
-const projDesc      = document.getElementById('proj-desc');
-const projOrder     = document.getElementById('proj-order');
-const projEditId    = document.getElementById('project-edit-id');
+const projTitle = document.getElementById('proj-title');
+const projImage = document.getElementById('proj-image');
+const projRepo = document.getElementById('proj-repo');
+const projDemo = document.getElementById('proj-demo');
+const projDesc = document.getElementById('proj-desc');
+const projOrder = document.getElementById('proj-order');
+const projEditId = document.getElementById('project-edit-id');
 const projFormTitle = document.getElementById('project-form-title');
-const projSaveBtn   = document.getElementById('proj-save-btn');
+const projSaveBtn = document.getElementById('proj-save-btn');
 const projCancelBtn = document.getElementById('proj-cancel-btn');
-const projListEl    = document.getElementById('proj-list');
+const projListEl = document.getElementById('proj-list');
+const projIsPublic = document.getElementById('proj-is-public');
+const projRepoContainer = document.getElementById('proj-repo-container');
+const projPrivateContainer = document.getElementById('proj-private-container');
+const projPrivateMsg = document.getElementById('proj-private-msg');
+
+// Toggle repo URL / private message visibility based on checkbox
+projIsPublic.addEventListener('change', () => {
+    if (projIsPublic.checked) {
+        projRepoContainer.style.display = '';
+        projPrivateContainer.style.display = 'none';
+    } else {
+        projRepoContainer.style.display = 'none';
+        projPrivateContainer.style.display = '';
+    }
+});
 
 async function loadProjects() {
-    const q  = query(collection(db, 'projects'), orderBy('order', 'asc'));
+    const q = query(collection(db, 'projects'), orderBy('order', 'asc'));
     const snap = await getDocs(q);
     projListEl.innerHTML = '';
     if (snap.empty) {
@@ -118,13 +133,21 @@ async function loadProjects() {
         `;
         // Edit
         item.querySelector('[data-edit]').addEventListener('click', () => {
-            projEditId.value     = docSnap.id;
-            projTitle.value      = d.title || '';
-            projImage.value      = d.imageUrl || '';
-            projRepo.value       = d.repoUrl || '';
-            projDemo.value       = d.demoUrl || '';
-            projDesc.value       = d.description || '';
-            projOrder.value      = d.order ?? 0;
+            projEditId.value = docSnap.id;
+            projTitle.value = d.title || '';
+            projImage.value = d.imageUrl || '';
+            projRepo.value = d.repoUrl || '';
+            projDemo.value = d.demoUrl || '';
+            projDesc.value = d.description || '';
+            projOrder.value = d.order ?? 0;
+
+            // Populate public/private repo fields
+            const isPublic = d.isRepoPublic !== false; // default true for old data
+            projIsPublic.checked = isPublic;
+            projPrivateMsg.value = d.privateMessage || 'Due to security regulations, the code is kept confidential.';
+            projRepoContainer.style.display = isPublic ? '' : 'none';
+            projPrivateContainer.style.display = isPublic ? 'none' : '';
+
             projFormTitle.textContent = '✎ Edit Project';
             projCancelBtn.style.display = 'inline-block';
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -147,7 +170,9 @@ projSaveBtn.addEventListener('click', async () => {
         repoUrl: projRepo.value.trim(),
         demoUrl: projDemo.value.trim(),
         description: projDesc.value.trim(),
-        order: parseInt(projOrder.value) || 0
+        order: parseInt(projOrder.value) || 0,
+        isRepoPublic: projIsPublic.checked,
+        privateMessage: projPrivateMsg.value.trim()
     };
     if (!data.title) { showToast('Title required', true); return; }
 
@@ -176,6 +201,10 @@ function resetProjectForm() {
     projDemo.value = '';
     projDesc.value = '';
     projOrder.value = '0';
+    projIsPublic.checked = true;
+    projPrivateMsg.value = 'Due to security regulations, the code is kept confidential.';
+    projRepoContainer.style.display = '';
+    projPrivateContainer.style.display = 'none';
     projFormTitle.textContent = '+ Add Project';
     projCancelBtn.style.display = 'none';
 }
@@ -183,17 +212,17 @@ function resetProjectForm() {
 // ============================================================
 // EXPERIENCE CRUD
 // ============================================================
-const expRole         = document.getElementById('exp-role');
-const expCompany      = document.getElementById('exp-company');
-const expLocation     = document.getElementById('exp-location');
-const expDate         = document.getElementById('exp-date');
+const expRole = document.getElementById('exp-role');
+const expCompany = document.getElementById('exp-company');
+const expLocation = document.getElementById('exp-location');
+const expDate = document.getElementById('exp-date');
 const expAchievements = document.getElementById('exp-achievements');
-const expOrder        = document.getElementById('exp-order');
-const expEditId       = document.getElementById('exp-edit-id');
-const expFormTitle    = document.getElementById('exp-form-title');
-const expSaveBtn     = document.getElementById('exp-save-btn');
-const expCancelBtn   = document.getElementById('exp-cancel-btn');
-const expListEl      = document.getElementById('exp-list');
+const expOrder = document.getElementById('exp-order');
+const expEditId = document.getElementById('exp-edit-id');
+const expFormTitle = document.getElementById('exp-form-title');
+const expSaveBtn = document.getElementById('exp-save-btn');
+const expCancelBtn = document.getElementById('exp-cancel-btn');
+const expListEl = document.getElementById('exp-list');
 
 async function loadExperiences() {
     const q = query(collection(db, 'experiences'), orderBy('order', 'asc'));
@@ -218,13 +247,13 @@ async function loadExperiences() {
             </div>
         `;
         item.querySelector('[data-edit]').addEventListener('click', () => {
-            expEditId.value         = docSnap.id;
-            expRole.value           = d.role || '';
-            expCompany.value        = d.company || '';
-            expLocation.value       = d.location || '';
-            expDate.value           = d.dateRange || '';
-            expAchievements.value   = (d.achievements || []).join('\n');
-            expOrder.value          = d.order ?? 0;
+            expEditId.value = docSnap.id;
+            expRole.value = d.role || '';
+            expCompany.value = d.company || '';
+            expLocation.value = d.location || '';
+            expDate.value = d.dateRange || '';
+            expAchievements.value = (d.achievements || []).join('\n');
+            expOrder.value = d.order ?? 0;
             expFormTitle.textContent = '✎ Edit Experience';
             expCancelBtn.style.display = 'inline-block';
             // Switch tab

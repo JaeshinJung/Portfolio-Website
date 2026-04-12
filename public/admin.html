@@ -66,8 +66,19 @@
                         <input type="text" id="proj-image" class="pixel-input" placeholder="https://...">
                     </div>
                     <div class="form-group">
+                        <label class="pixel-checkbox-label">
+                            <input type="checkbox" id="proj-is-public" checked>
+                            <span class="pixel-checkbox-box"></span>
+                            Enable Public Repository?
+                        </label>
+                    </div>
+                    <div class="form-group" id="proj-repo-container">
                         <label>Repository URL</label>
                         <input type="text" id="proj-repo" class="pixel-input" placeholder="https://github.com/...">
+                    </div>
+                    <div class="form-group" id="proj-private-container" style="display:none;">
+                        <label>Private Message</label>
+                        <input type="text" id="proj-private-msg" class="pixel-input" value="Due to security regulations, the code is kept confidential.">
                     </div>
                     <div class="form-group">
                         <label>Demo URL (optional)</label>
