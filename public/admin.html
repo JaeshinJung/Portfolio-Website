@@ -48,12 +48,40 @@
 
             <!-- Tabs -->
             <div class="tab-nav">
-                <button class="tab-btn active" data-tab="projects-tab">Projects</button>
+                <button class="tab-btn active" data-tab="home-tab">Home</button>
+                <button class="tab-btn" data-tab="projects-tab">Projects</button>
                 <button class="tab-btn" data-tab="experiences-tab">Experience</button>
+                <button class="tab-btn" data-tab="skills-tab">Skills</button>
+            </div>
+
+            <!-- ===== HOME TAB ===== -->
+            <div id="home-tab" class="tab-content active">
+                <div class="admin-form">
+                    <h3>✎ Edit Home Page</h3>
+                    <div class="form-group">
+                        <label>Hero Title</label>
+                        <input type="text" id="home-hero-title" class="pixel-input" placeholder="Jaeshin Jung">
+                    </div>
+                    <div class="form-group">
+                        <label>Hero Subtitle</label>
+                        <input type="text" id="home-hero-subtitle" class="pixel-input" placeholder="Computer Science @ Texas A&M...">
+                    </div>
+                    <div class="form-group">
+                        <label>Profile Image URL</label>
+                        <input type="text" id="home-profile-img" class="pixel-input" placeholder="assets/avatar.png">
+                    </div>
+                    <div class="form-group">
+                        <label>About Me</label>
+                        <textarea id="home-about-me" class="pixel-input" rows="5" placeholder="Computer Science major..."></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button id="home-save-btn" class="pixel-btn">Save Home Content</button>
+                    </div>
+                </div>
             </div>
 
             <!-- ===== PROJECTS TAB ===== -->
-            <div id="projects-tab" class="tab-content active">
+            <div id="projects-tab" class="tab-content">
                 <div class="admin-form">
                     <h3 id="project-form-title">+ Add Project</h3>
                     <input type="hidden" id="project-edit-id">
@@ -137,6 +165,32 @@
                 </div>
                 <h3 class="admin-section-title">Existing Experience</h3>
                 <div id="exp-list"></div>
+            </div>
+
+            <!-- ===== SKILLS TAB ===== -->
+            <div id="skills-tab" class="tab-content">
+                <div class="admin-form">
+                    <h3 id="skill-form-title">+ Add Skill Category</h3>
+                    <input type="hidden" id="skill-edit-id">
+                    <div class="form-group">
+                        <label>Category Name</label>
+                        <input type="text" id="skill-category" class="pixel-input" placeholder="Languages">
+                    </div>
+                    <div class="form-group">
+                        <label>Items (comma separated)</label>
+                        <textarea id="skill-items" class="pixel-input" rows="3" placeholder="C++, Java, Python, ..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Order (number for sorting)</label>
+                        <input type="number" id="skill-order" class="pixel-input" placeholder="0" value="0">
+                    </div>
+                    <div class="form-actions">
+                        <button id="skill-save-btn" class="pixel-btn">Save</button>
+                        <button id="skill-cancel-btn" class="pixel-btn secondary" style="display:none;">Cancel</button>
+                    </div>
+                </div>
+                <h3 class="admin-section-title">Existing Skills</h3>
+                <div id="skill-list"></div>
             </div>
         </div>
     </div>

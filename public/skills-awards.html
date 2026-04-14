@@ -24,11 +24,8 @@
     <div class="container">
         <section>
             <h2>Technical Skills</h2>
-            <div class="skills-list">
-                <h3>Languages</h3>
-                <p>C++, C#, Java, Python, JavaScript, SQL, Bash</p>
-                <h3>Game & Systems</h3>
-                <p>Unity, Game Engine Architecture, 3D Math, Linux, Git, React.js</p>
+            <div id="skills-container" class="skills-list">
+                <h3>Loading...</h3>
             </div>
         </section>
 
@@ -43,6 +40,7 @@
     </div>
 
     <script>
+        // Generate random pixel stars
         const starsContainer = document.getElementById('stars-bg');
         for (let i = 0; i < 60; i++) {
             const star = document.createElement('div');
@@ -53,6 +51,40 @@
             star.style.animationDuration = (2 + Math.random() * 3) + 's';
             starsContainer.appendChild(star);
         }
+    </script>
+    <script type="module">
+        import { db } from './firebase-config.js';
+        import { collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const container = document.getElementById('skills-container');
+            function esc(str) {
+                const div = document.createElement('div');
+                div.textContent = str;
+                return div.innerHTML;
+            }
+
+            try {
+                const q = query(collection(db, 'skills'), orderBy('order', 'asc'));
+                const snap = await getDocs(q);
+                
+                if (snap.empty) {
+                    container.innerHTML = '<p>No technical skills entries yet.</p>';
+                } else {
+                    container.innerHTML = '';
+                    snap.forEach(docSnap => {
+                        const d = docSnap.data();
+                        container.innerHTML += `
+                            <h3>${esc(d.category || 'Untitled')}</h3>
+                            <p>${esc(d.items || '')}</p>
+                        `;
+                    });
+                }
+            } catch (e) {
+                console.error("Error loading skills:", e);
+                container.innerHTML = '<p>Error loading skills data.</p>';
+            }
+        });
     </script>
 </body>
 
