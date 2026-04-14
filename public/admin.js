@@ -7,7 +7,7 @@ import {
     onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import {
-    collection, getDocs, addDoc, updateDoc, deleteDoc, doc, orderBy, query
+    collection, getDocs, addDoc, updateDoc, deleteDoc, doc, orderBy, query, getDoc, setDoc
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 // ─── DOM References ──────────────────────────────
@@ -27,8 +27,11 @@ onAuthStateChanged(auth, user => {
         loginView.style.display = 'none';
         dashboardView.style.display = 'block';
         userEmailEl.textContent = user.email;
+        userEmailEl.textContent = user.email;
+        loadHome();
         loadProjects();
         loadExperiences();
+        loadSkills();
     } else {
         loginView.style.display = 'flex';
         dashboardView.style.display = 'none';
@@ -311,4 +314,131 @@ function resetExpForm() {
     expOrder.value = '0';
     expFormTitle.textContent = '+ Add Experience';
     expCancelBtn.style.display = 'none';
+}
+
+// ============================================================
+// HOME CONTENT
+// ============================================================
+const homeHeroTitle = document.getElementById('home-hero-title');
+const homeHeroSubtitle = document.getElementById('home-hero-subtitle');
+const homeProfileImg = document.getElementById('home-profile-img');
+const homeAboutMe = document.getElementById('home-about-me');
+const homeSaveBtn = document.getElementById('home-save-btn');
+
+async function loadHome() {
+    try {
+        const homeDoc = await getDoc(doc(db, 'siteContent', 'home'));
+        if (homeDoc.exists()) {
+            const data = homeDoc.data();
+            homeHeroTitle.value = data.heroTitle || '';
+            homeHeroSubtitle.value = data.heroSubtitle || '';
+            homeProfileImg.value = data.profileImageUrl || '';
+            homeAboutMe.value = data.aboutMeText || '';
+        }
+    } catch(e) {
+        showToast('Failed to load home data', true);
+    }
+}
+
+homeSaveBtn.addEventListener('click', async () => {
+    const data = {
+        heroTitle: homeHeroTitle.value.trim(),
+        heroSubtitle: homeHeroSubtitle.value.trim(),
+        profileImageUrl: homeProfileImg.value.trim(),
+        aboutMeText: homeAboutMe.value.trim()
+    };
+    
+    try {
+        await setDoc(doc(db, 'siteContent', 'home'), data, { merge: true });
+        showToast('Home Content saved');
+    } catch(e) {
+        showToast('Error saving: ' + e.message, true);
+    }
+});
+
+// ============================================================
+// SKILLS CRUD
+// ============================================================
+const skillCategory = document.getElementById('skill-category');
+const skillItems = document.getElementById('skill-items');
+const skillOrder = document.getElementById('skill-order');
+const skillEditId = document.getElementById('skill-edit-id');
+const skillFormTitle = document.getElementById('skill-form-title');
+const skillSaveBtn = document.getElementById('skill-save-btn');
+const skillCancelBtn = document.getElementById('skill-cancel-btn');
+const skillListEl = document.getElementById('skill-list');
+
+async function loadSkills() {
+    const q = query(collection(db, 'skills'), orderBy('order', 'asc'));
+    const snap = await getDocs(q);
+    skillListEl.innerHTML = '';
+    if (snap.empty) {
+        skillListEl.innerHTML = '<p class="empty-state">No skills categories yet.</p>';
+        return;
+    }
+    snap.forEach(docSnap => {
+        const d = docSnap.data();
+        const item = document.createElement('div');
+        item.className = 'admin-item';
+        item.innerHTML = `
+            <div class="admin-item-info">
+                <h4>${esc(d.category || 'Untitled')}</h4>
+                <p>${esc(d.items || '')}</p>
+            </div>
+            <div class="admin-item-actions">
+                <button class="pixel-btn secondary btn-sm" data-edit="${docSnap.id}">Edit</button>
+                <button class="pixel-btn danger btn-sm" data-del="${docSnap.id}">Del</button>
+            </div>
+        `;
+        item.querySelector('[data-edit]').addEventListener('click', () => {
+            skillEditId.value = docSnap.id;
+            skillCategory.value = d.category || '';
+            skillItems.value = d.items || '';
+            skillOrder.value = d.order ?? 0;
+            skillFormTitle.textContent = '✎ Edit Skill Category';
+            skillCancelBtn.style.display = 'inline-block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+        item.querySelector('[data-del]').addEventListener('click', async () => {
+            if (!confirm('Delete this skill category?')) return;
+            await deleteDoc(doc(db, 'skills', docSnap.id));
+            showToast('Skill Category deleted');
+            loadSkills();
+        });
+        skillListEl.appendChild(item);
+    });
+}
+
+skillSaveBtn.addEventListener('click', async () => {
+    const data = {
+        category: skillCategory.value.trim(),
+        items: skillItems.value.trim(),
+        order: parseInt(skillOrder.value) || 0
+    };
+    if (!data.category) { showToast('Category name required', true); return; }
+
+    try {
+        if (skillEditId.value) {
+            await updateDoc(doc(db, 'skills', skillEditId.value), data);
+            showToast('Skill Category updated');
+        } else {
+            await addDoc(collection(db, 'skills'), data);
+            showToast('Skill Category added');
+        }
+        resetSkillForm();
+        loadSkills();
+    } catch (e) {
+        showToast('Error: ' + e.message, true);
+    }
+});
+
+skillCancelBtn.addEventListener('click', resetSkillForm);
+
+function resetSkillForm() {
+    skillEditId.value = '';
+    skillCategory.value = '';
+    skillItems.value = '';
+    skillOrder.value = '0';
+    skillFormTitle.textContent = '+ Add Skill Category';
+    skillCancelBtn.style.display = 'none';
 }

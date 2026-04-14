@@ -29,16 +29,15 @@
         <!-- Character Select Frame -->
         <div class="avatar-frame">
             <div class="avatar-frame-label">- Select Player -</div>
-            <img src="assets/avatar.png" alt="Jaeshin Jung — Pixel Avatar" class="profile-img">
+            <img src="assets/avatar.png" alt="Jaeshin Jung — Pixel Avatar" class="profile-img" id="home-img">
             <div class="avatar-frame-name">Player 1</div>
         </div>
 
-        <h1>Jaeshin Jung</h1>
-        <p class="subtitle">Computer Science @ Texas A&M University | Aspiring Game Developer</p>
+        <h1 id="home-title">Loading...</h1>
+        <p class="subtitle" id="home-subtitle">Loading...</p>
 
-        <div class="bio">
-            <p>Computer Science major with a minor in Game Design (GPA 3.83). Focused on high-performance C++ systems
-                and immersive game experiences in Unity.</p>
+        <div class="bio" id="home-about">
+            <p>Loading...</p>
         </div>
 
         <div class="contact-links">
@@ -62,6 +61,35 @@
             star.style.animationDuration = (2 + Math.random() * 3) + 's';
             starsContainer.appendChild(star);
         }
+    </script>
+    <script type="module">
+        import { db } from './firebase-config.js';
+        import { getDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const homeDoc = await getDoc(doc(db, 'siteContent', 'home'));
+                if (homeDoc.exists()) {
+                    const data = homeDoc.data();
+                    if (data.profileImageUrl) document.getElementById('home-img').src = data.profileImageUrl;
+                    if (data.heroTitle) document.getElementById('home-title').textContent = data.heroTitle;
+                    if (data.heroSubtitle) document.getElementById('home-subtitle').textContent = data.heroSubtitle;
+                    
+                    // Replace newlines with <br> to preserve typical multiline text
+                    if (data.aboutMeText) {
+                        const formattedText = data.aboutMeText.replace(/\n/g, '<br>');
+                        document.getElementById('home-about').innerHTML = `<p>${formattedText}</p>`;
+                    }
+                } else {
+                    document.getElementById('home-title').textContent = 'Jaeshin Jung';
+                    document.getElementById('home-subtitle').textContent = 'Computer Science @ Texas A&M University';
+                    document.getElementById('home-about').innerHTML = '<p>Computer Science major with a minor...</p>';
+                }
+            } catch (e) {
+                console.error("Error loading home:", e);
+                document.getElementById('home-title').textContent = 'Error Loading Data';
+            }
+        });
     </script>
 </body>
 
