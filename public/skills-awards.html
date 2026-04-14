@@ -24,8 +24,8 @@
     <div class="container">
         <section>
             <h2>Technical Skills</h2>
-            <div id="skills-container" class="skills-list">
-                <h3>Loading...</h3>
+            <div id="skills-container" class="skills-grid">
+                <h3 class="loading-text" style="grid-column: 1 / -1;">Loading Skills Data...</h3>
             </div>
         </section>
 
@@ -74,9 +74,40 @@
                     container.innerHTML = '';
                     snap.forEach(docSnap => {
                         const d = docSnap.data();
+                        const itemsStr = d.items || '';
+                        
+                        // Parse multiline string or fallback to comma-split
+                        let itemsList = [];
+                        if (itemsStr.includes('|') || itemsStr.includes('\n')) {
+                            // modern format: Skill | Description
+                            itemsList = itemsStr.split('\n').map(l => l.trim()).filter(Boolean).map(line => {
+                                const parts = line.split('|');
+                                return {
+                                    name: parts[0] ? parts[0].trim() : '',
+                                    desc: parts.length > 1 ? parts.slice(1).join('|').trim() : ''
+                                };
+                            });
+                        } else {
+                            // legacy comma format
+                            itemsList = itemsStr.split(',').map(s => s.trim()).filter(Boolean).map(name => ({
+                                name: name, desc: ''
+                            }));
+                        }
+
+                        const cardsHtml = itemsList
+                            .map(item => `
+                                <div class="skill-level-card">
+                                    <div class="skill-name">${esc(item.name)}</div>
+                                    ${item.desc ? `<div class="skill-desc">${esc(item.desc)}</div>` : ''}
+                                </div>
+                            `)
+                            .join('');
+
                         container.innerHTML += `
-                            <h3>${esc(d.category || 'Untitled')}</h3>
-                            <p>${esc(d.items || '')}</p>
+                            <div class="level-1-section">
+                                <h2 class="level-1-header">${esc(d.category || 'Untitled')}</h2>
+                                <div class="level-2-grid">${cardsHtml}</div>
+                            </div>
                         `;
                     });
                 }

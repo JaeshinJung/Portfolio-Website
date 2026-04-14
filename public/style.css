@@ -538,29 +538,74 @@ h2::after {
 /* ============================================================
    SKILLS PAGE
    ============================================================ */
-.skills-list {
+/* Update skills-awards.html layout */
+.level-1-section {
   background: var(--bg-card);
-  padding: 28px 30px;
+  padding: 36px 40px;
   box-shadow: var(--pixel-shadow);
-  margin-bottom: 28px;
+  margin-bottom: 56px;
+  border-top: 4px solid var(--neon-cyan);
 }
 
-.skills-list h3 {
-  font-size: 11px;
+.level-1-header {
+  font-family: var(--font-pixel);
+  font-size: 18px;
   color: var(--neon-magenta);
-  margin-bottom: 8px;
-  margin-top: 20px;
+  text-shadow: 0 0 10px rgba(187, 154, 247, 0.5);
+  margin-bottom: 32px;
+  text-align: left;
+  padding-bottom: 0px;
 }
 
-.skills-list h3:first-child {
-  margin-top: 0;
+.level-1-header::after {
+  display: none;
 }
 
-.skills-list p {
+.level-2-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.skill-level-card {
+  background: var(--bg-primary);
+  padding: 18px;
+  border-left: 3px solid var(--neon-yellow);
+  box-shadow:
+    2px 0 0 0 var(--text-muted),
+    -2px 0 0 0 var(--text-muted),
+    0 2px 0 0 var(--text-muted),
+    0 -2px 0 0 var(--text-muted);
+  transition: all 0.2s;
+}
+
+.skill-level-card:hover {
+  transform: translateY(-3px);
+  border-left-color: var(--neon-green);
+  box-shadow:
+    2px 0 0 0 var(--neon-green),
+    -2px 0 0 0 var(--neon-green),
+    0 2px 0 0 var(--neon-green),
+    0 -2px 0 0 var(--neon-green);
+}
+
+.skill-name {
+  font-family: var(--font-pixel);
+  font-size: 11px;
+  color: var(--neon-yellow);
+  margin-bottom: 10px;
+  transition: color 0.2s;
+}
+
+.skill-level-card:hover .skill-name {
+  color: var(--neon-green);
+}
+
+.skill-desc {
   font-family: var(--font-body);
-  font-size: 15px;
-  color: var(--text-primary);
-  line-height: 1.9;
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.6;
 }
 
 .award-list {
