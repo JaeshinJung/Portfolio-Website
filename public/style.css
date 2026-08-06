@@ -1,33 +1,39 @@
 /* ============================================================
-   ENGINE / DEBUG CONSOLE — GLOBAL STYLESHEET
+   ARCADE DUNGEON — GLOBAL STYLESHEET
+   Near-black violet stone, gold for UI and loot, red for danger,
+   green for cleared. Shares one 8-colour palette with the pixel
+   sprites in /assets/sprites so art and UI read as one image.
    ============================================================ */
 
-/* --- Google Fonts — Dual System --- */
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;500;600&display=swap');
+/* --- Google Fonts — Dual System (display / body) --- */
+@import url('https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Inter:wght@400;500;700&display=swap');
 
 /* --- CSS Variables (Design Tokens) --- */
 :root {
-  /* Surfaces — neutral, engine viewport */
-  --bg:         #101216;
-  --surface:    #181B21;
-  --surface-2:  #1F232B;   /* nested / hover */
-  --line:       #2A2F38;   /* 1px borders, grid */
-  --line-strong:#3A414D;   /* emphasized border */
+  /* Surfaces — dungeon stone, violet cast */
+  --bg:          #0C0A0F;
+  --surface:     #16121C;
+  --surface-2:   #1F1A28;   /* nested / hover */
+  --line:        #2E2540;   /* resting borders, grid */
+  --line-strong: #453A60;   /* emphasized border */
 
   /* Text */
-  --text:       #D6DAE0;
-  --text-dim:   #8B929E;
-  --text-faint: #5A616D;
+  --text:        #E8E4F0;
+  --text-dim:    #9A90AE;
+  --text-faint:  #8A81A4;   /* lightened from #6B6280 to clear 4.5:1 */
 
-  /* Exactly ONE accent */
-  --accent:     #FFB020;
-  --accent-dim: #8A5F12;   /* pressed / low-emphasis accent */
+  /* Gold — UI and things worth collecting */
+  --accent:      #FFD447;
+  --accent-dim:  #9A7C14;   /* pressed; lightened to clear 4.5:1 */
 
-  /* Reserved for warnings only — never decorative */
-  --danger:     #E5484D;
+  /* Danger — warnings and destructive actions only */
+  --danger:      #FF4D6D;
+
+  /* Cleared — success / confirmed */
+  --cleared:     #5EE6A8;
 
   /* Typography — display + body */
-  --font-display: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-display: 'Silkscreen', 'Courier New', monospace;
   --font-body:    'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
 
   --transition-speed: 0.2s;
@@ -41,7 +47,7 @@
 }
 
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--cleared);
   outline-offset: 2px;
 }
 
@@ -95,7 +101,7 @@ body::after {
   background: var(--surface);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--accent);
+  background: var(--line-strong);
   border: 2px solid var(--surface);
 }
 
@@ -108,7 +114,7 @@ nav {
   position: sticky;
   top: 0;
   z-index: 1000;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 2px solid var(--line);
 }
 
 nav ul {
@@ -123,7 +129,7 @@ nav ul li a {
   font-family: var(--font-display);
   color: var(--text-dim);
   text-decoration: none;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -143,13 +149,14 @@ nav ul li a::before {
   height: 0;
   border-top: 5px solid transparent;
   border-bottom: 5px solid transparent;
-  border-left: 8px solid var(--accent);
+  border-left: 8px solid var(--text-dim);
   opacity: 0;
   transition: opacity var(--transition-speed);
 }
 
 nav ul li a:hover::before,
 nav ul li a.active::before {
+  border-left-color: var(--accent);
   opacity: 1;
 }
 
@@ -195,7 +202,7 @@ h2::after {
   left: 50%;
   transform: translateX(-50%);
   width: 120px;
-  height: 1px;
+  height: 2px;
   background: var(--accent);
 }
 
@@ -214,7 +221,7 @@ h2::after {
   padding: 20px 28px 16px;
   margin-bottom: 32px;
   position: relative;
-  border: 1px solid var(--line);
+  border: 2px solid var(--line);
   transition: border-color 0.3s;
   animation: avatar-idle 3s ease-in-out infinite;
 }
@@ -232,7 +239,7 @@ h2::after {
   font-family: var(--font-display);
   font-size: 11px;
   font-weight: 700;
-  color: var(--accent);
+  color: var(--text-faint);
   text-align: center;
   margin-bottom: 14px;
   letter-spacing: 1px;
@@ -256,7 +263,7 @@ h2::after {
   image-rendering: pixelated;
   display: block;
   margin: 0 auto;
-  border: 1px solid var(--line-strong);
+  border: 2px solid var(--line-strong);
   transition: border-color 0.3s;
 }
 
@@ -265,7 +272,7 @@ h2::after {
 }
 
 .main-hero h1 {
-  font-size: 34px;
+  font-size: 32px;
   color: var(--accent);
   margin-bottom: 14px;
   animation: flicker 4s infinite alternate;
@@ -292,7 +299,7 @@ h2::after {
   margin: 0 auto 36px;
   background: var(--surface);
   padding: 24px 28px;
-  border: 1px solid var(--line);
+  border: 2px solid var(--line);
   line-height: 1.9;
 }
 
@@ -324,7 +331,7 @@ h2::after {
   text-transform: uppercase;
   letter-spacing: 0.06em;
   text-decoration: none;
-  border: 1px solid var(--accent);
+  border: 2px solid var(--accent);
   transition: all var(--transition-speed) steps(4);
 }
 
@@ -346,7 +353,7 @@ h2::after {
   background: var(--surface);
   padding: 28px 30px;
   margin-bottom: 24px;
-  border: 1px solid var(--line);
+  border: 2px solid var(--line);
   text-align: left;
   transition: all var(--transition-speed);
   position: relative;
@@ -360,7 +367,7 @@ h2::after {
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 176, 32, 0.03), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 212, 71, 0.03), transparent);
   transition: left 0.5s;
 }
 
@@ -373,7 +380,7 @@ h2::after {
 }
 
 .card h3 {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   color: var(--accent);
   margin-bottom: 10px;
@@ -390,7 +397,7 @@ h2::after {
 .card .date {
   font-family: var(--font-body);
   font-size: 13px;
-  color: var(--accent);
+  color: var(--text-faint);
   margin-bottom: 16px;
 }
 
@@ -415,8 +422,8 @@ h2::after {
   left: 0;
   font-family: var(--font-display);
   font-size: 13px;
-  color: var(--accent);
-  top: 8px;
+  color: var(--text-dim);
+  top: 9px;
 }
 
 .card ul li strong {
@@ -437,7 +444,7 @@ h2::after {
 .project-card {
   background: var(--surface);
   padding: 25px;
-  border: 1px solid var(--line);
+  border: 2px solid var(--line);
   text-align: left;
   transition: all var(--transition-speed);
   position: relative;
@@ -457,7 +464,7 @@ h2::after {
   aspect-ratio: 16 / 9;
   object-fit: cover;
   margin-bottom: 18px;
-  border: 1px solid var(--line-strong);
+  border: 2px solid var(--line-strong);
 }
 
 .project-card a {
@@ -465,7 +472,7 @@ h2::after {
 }
 
 .project-card h3 {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   color: var(--accent);
   margin-bottom: 10px;
@@ -517,7 +524,7 @@ h2::after {
 .level-1-section {
   background: var(--surface);
   padding: 36px 40px;
-  border: 1px solid var(--line);
+  border: 2px solid var(--line);
   margin-bottom: 56px;
 }
 
@@ -530,7 +537,7 @@ h2::after {
   color: var(--accent);
   margin-bottom: 32px;
   text-align: left;
-  padding-bottom: 0px;
+  padding-bottom: 0;
 }
 
 .level-1-header::after {
@@ -546,12 +553,13 @@ h2::after {
 .skill-level-card {
   background: var(--bg);
   padding: 18px;
-  border: 1px solid var(--line);
-  border-left: 1px solid var(--accent);
+  border: 2px solid var(--line);
+  border-left: 2px solid var(--line);
   transition: all 0.2s;
 }
 
 .skill-level-card:hover {
+  background: var(--surface-2);
   transform: translateY(-3px);
   border-color: var(--accent);
 }
@@ -582,12 +590,13 @@ h2::after {
   padding: 16px 22px;
   margin-bottom: 14px;
   font-size: 14px;
-  border: 1px solid var(--line);
+  border: 2px solid var(--line);
   transition: all 0.2s;
   line-height: 1.8;
 }
 
 .award-list li:hover {
+  background: var(--surface-2);
   border-color: var(--accent);
 }
 
@@ -637,14 +646,14 @@ h2::after {
 .login-box {
   background: var(--surface);
   padding: 44px 40px;
-  border: 1px solid var(--line);
+  border: 2px solid var(--line);
   text-align: center;
   width: 100%;
   max-width: 440px;
 }
 
 .login-box h2 {
-  font-size: 18px;
+  font-size: 17px;
   color: var(--accent);
   margin-bottom: 32px;
 }
@@ -657,7 +666,7 @@ h2::after {
   font-weight: 400;
   background: var(--bg);
   color: var(--text);
-  border: 1px solid var(--line);
+  border: 2px solid var(--line);
   margin-bottom: 18px;
   outline: none;
   transition: border-color 0.2s;
@@ -681,7 +690,7 @@ h2::after {
   padding: 12px 24px;
   background: var(--accent);
   color: var(--bg);
-  border: 1px solid var(--accent);
+  border: 2px solid var(--accent);
   cursor: pointer;
   transition: all 0.15s steps(3);
 }
@@ -739,7 +748,7 @@ h2::after {
   align-items: center;
   margin-bottom: 36px;
   padding-bottom: 18px;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 2px solid var(--line);
 }
 
 .admin-header h1 {
@@ -769,7 +778,7 @@ h2::after {
   padding: 10px 22px;
   background: var(--surface);
   color: var(--text-dim);
-  border: 1px solid var(--line);
+  border: 2px solid var(--line);
   cursor: pointer;
   transition: all 0.15s;
 }
@@ -781,6 +790,7 @@ h2::after {
 }
 
 .tab-btn:hover:not(.active) {
+  background: var(--surface-2);
   color: var(--accent);
 }
 
@@ -796,7 +806,7 @@ h2::after {
 .admin-form {
   background: var(--surface);
   padding: 28px 30px;
-  border: 1px solid var(--line);
+  border: 2px solid var(--line);
   margin-bottom: 32px;
 }
 
@@ -827,7 +837,7 @@ h2::after {
   font-size: 14px;
   background: var(--bg);
   color: var(--text);
-  border: 1px solid var(--line);
+  border: 2px solid var(--line);
   outline: none;
   resize: vertical;
   min-height: 80px;
@@ -845,7 +855,7 @@ h2::after {
   margin-top: 20px;
 }
 
-/* Retro Pixel Checkbox */
+/* Checkbox — square box, fills green when checked */
 .pixel-checkbox-label {
   display: inline-flex;
   align-items: center;
@@ -872,14 +882,14 @@ h2::after {
   height: 20px;
   background: var(--bg);
   flex-shrink: 0;
-  border: 1px solid var(--line);
+  border: 2px solid var(--line);
   transition: all 0.15s steps(3);
   position: relative;
 }
 
 .pixel-checkbox-label input[type="checkbox"]:checked + .pixel-checkbox-box {
-  background: var(--accent);
-  border-color: var(--accent);
+  background: var(--cleared);
+  border-color: var(--cleared);
 }
 
 .pixel-checkbox-label input[type="checkbox"]:checked + .pixel-checkbox-box::after {
@@ -899,7 +909,7 @@ h2::after {
   background: var(--surface);
   padding: 20px 22px;
   margin-bottom: 14px;
-  border: 1px solid var(--line);
+  border: 2px solid var(--line);
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -907,7 +917,7 @@ h2::after {
 }
 
 .admin-item-info h4 {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--accent);
   margin-bottom: 6px;
@@ -947,13 +957,13 @@ h2::after {
   position: fixed;
   bottom: 28px;
   right: 28px;
-  background: var(--accent);
+  background: var(--cleared);
   color: var(--bg);
   padding: 14px 22px;
   font-family: var(--font-body);
   font-size: 13px;
   font-weight: 500;
-  border: 1px solid var(--line);
+  border: 2px solid var(--line);
   z-index: 10000;
   opacity: 0;
   transform: translateY(20px);
@@ -980,7 +990,7 @@ h2::after {
   body { font-size: 14px; }
   nav ul { flex-wrap: wrap; gap: 4px; }
   nav ul li a { font-size: 12px; padding: 6px 10px; }
-  .main-hero h1 { font-size: 24px; }
+  .main-hero h1 { font-size: 22px; }
   .subtitle { font-size: 12px; }
   .project-grid { grid-template-columns: 1fr; }
   .project-card { max-width: 100%; }
@@ -991,7 +1001,7 @@ h2::after {
 }
 
 /* ============================================================
-   PIXEL ANIMATION — STARS BACKGROUND
+   AMBIENT BACKGROUND — DRIFTING DUST MOTES
    ============================================================ */
 .stars {
   position: fixed;
