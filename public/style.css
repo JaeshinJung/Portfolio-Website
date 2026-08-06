@@ -413,6 +413,15 @@ h2::after {
   color: var(--text-dim);
   line-height: 1.8;
   flex-grow: 1;
+  /* Stopgap: a stage-select grid has to be scannable, and one long
+     description used to push the next card ~1000px down. Clamp to 3 lines;
+     the full text is on the p's title attribute for now and will get a
+     proper home in the per-project stage view. */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
 }
 
 .video-btn {

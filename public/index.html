@@ -139,6 +139,11 @@
                         </div>
                     `;
 
+                    // The description is clamped to 3 lines in CSS, so keep the
+                    // full text reachable on hover. Set as a property, not in the
+                    // template: escapeHtml() does not escape quotes.
+                    card.querySelector('p').title = d.description || '';
+
                     // Attach click handler to the Repository button
                     const repoBtn = card.querySelector('.repo-btn');
                     repoBtn.addEventListener('click', () => {
