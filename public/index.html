@@ -79,20 +79,48 @@
             "Jackson's Boba Beat.png": [1902, 926],
         };
 
-        // null for anything we cannot prove is local, so an unrecognised
-        // imageUrl is left exactly as Firestore holds it.
-        function localAsset(url) {
+        // The file's own name, URL-decoded. null for anything that is not the
+        // expected blob shape, so an unrecognised URL is left exactly as
+        // Firestore holds it.
+        function assetBasename(url) {
             const match = GITHUB_ASSET_URL.exec(url);
             if (!match) return null;
-            let file;
             try {
-                file = decodeURIComponent(match[1]);
+                return decodeURIComponent(match[1]);
             } catch {
                 return null; // malformed percent-escape
             }
+        }
+
+        // null for anything we cannot prove is local.
+        function localAsset(url) {
+            const file = assetBasename(url);
+            if (!file) return null;
             const size = LOCAL_ASSETS[file];
             if (!size) return null;
             return { src: `assets/${encodeURIComponent(file)}`, width: size[0], height: size[1] };
+        }
+
+        // siteContent/home.profileImageUrl points at the GitHub copy of
+        // assets/avatar.png, which is 5.7 MB — more than all seven screenshots
+        // put together — to paint a 56x56 HUD box. The static markup already
+        // loaded the local copy, so assigning that URL fetched the same picture
+        // a second time, remotely, over a three-hop redirect chain. Rewrite to
+        // the local path, and when it already matches what the markup shipped,
+        // do not touch src at all so there is no second request of any kind.
+        function setProfileImage(url) {
+            const img = document.getElementById('home-img');
+            const file = assetBasename(url);
+            if (!file) {
+                img.src = url;
+                return;
+            }
+            const src = `assets/${encodeURIComponent(file)}`;
+            if (new URL(src, document.baseURI).href === img.src) return;
+            // Degrade to the URL Firestore holds if the local file is missing.
+            // { once: true }, so a fallback that also fails cannot loop.
+            img.addEventListener('error', () => { img.src = url; }, { once: true });
+            img.src = src;
         }
 
         async function loadHome() {
@@ -100,7 +128,7 @@
                 const homeDoc = await getDoc(doc(db, 'siteContent', 'home'));
                 if (homeDoc.exists()) {
                     const data = homeDoc.data();
-                    if (data.profileImageUrl) document.getElementById('home-img').src = data.profileImageUrl;
+                    if (data.profileImageUrl) setProfileImage(data.profileImageUrl);
                     if (data.heroTitle) document.getElementById('home-title').textContent = data.heroTitle;
                     if (data.heroSubtitle) document.getElementById('home-subtitle').textContent = data.heroSubtitle;
 
