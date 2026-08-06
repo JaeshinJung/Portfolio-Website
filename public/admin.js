@@ -113,6 +113,59 @@ projIsPublic.addEventListener('change', () => {
     }
 });
 
+// itch.io's "Embed in your page" panel hands out a whole <iframe> snippet, not
+// a URL, and index.html feeds this value straight into iframe.src — so a pasted
+// snippet used to be stored verbatim and fail silently. Accept both forms.
+//
+// Parsed with DOMParser rather than a regex: attribute order, single vs double
+// quotes, newlines inside the tag and extra attributes all break a regex, while
+// DOMParser is the same parser the browser itself would use. The document it
+// returns has no browsing context, so the <iframe> inside it loads nothing.
+//
+// Returns { url } on success or { error } on rejection. Empty stays valid and
+// saves '' — that is how a project opts out of the PLAY button.
+function normalizePlayUrl(raw) {
+    const value = raw.trim();
+    if (!value) return { url: '' };
+
+    let candidate = value;
+    let ratio = null;
+    if (value.includes('<iframe')) {
+        const frame = new DOMParser().parseFromString(value, 'text/html').querySelector('iframe');
+        const src = frame && frame.getAttribute('src');
+        if (!src || !src.trim()) {
+            return { error: 'That embed code has no src — copy the whole <iframe> snippet from itch.io.' };
+        }
+        candidate = src.trim();
+        const w = parseFloat(frame.getAttribute('width'));
+        const h = parseFloat(frame.getAttribute('height'));
+        if (w > 0 && h > 0) ratio = w / h;
+    }
+
+    let parsed;
+    try {
+        parsed = new URL(candidate);
+    } catch {
+        return { error: 'Play URL is not a valid URL — paste the itch.io embed code or an https:// URL.' };
+    }
+    // The value ends up in iframe.src, so https: only: javascript:, data: and
+    // plain http: are all rejected here rather than shipped to Firestore.
+    if (parsed.protocol !== 'https:') {
+        return { error: 'Play URL must start with https:// (got "' + parsed.protocol + '") — it is loaded in an iframe.' };
+    }
+    // Self-hosting a build is legitimate, so a non-itch.io host is a console
+    // warning, never a rejection. The toast is single-slot and the save toast
+    // fires immediately after, so a toast warning here would be overwritten.
+    if (!/(^|\.)itch\.io$/.test(parsed.hostname)) {
+        console.warn('Play URL host is not itch.io: ' + parsed.hostname + ' — allowed, but double-check it embeds.');
+    }
+    // Reported, not enforced: style.css locks .game-frame to 960/600 (1.6).
+    if (ratio && Math.abs(ratio - 960 / 600) > 0.01) {
+        console.info('Embed snippet ratio is ' + ratio.toFixed(3) + '; the site renders it at 1.600.');
+    }
+    return { url: candidate };
+}
+
 async function loadProjects() {
     const q = query(collection(db, 'projects'), orderBy('order', 'asc'));
     const snap = await getDocs(q);
@@ -169,18 +222,20 @@ async function loadProjects() {
 }
 
 projSaveBtn.addEventListener('click', async () => {
+    const play = normalizePlayUrl(projPlay.value);
     const data = {
         title: projTitle.value.trim(),
         imageUrl: projImage.value.trim(),
         repoUrl: projRepo.value.trim(),
         demoUrl: projDemo.value.trim(),
-        playUrl: projPlay.value.trim(),
+        playUrl: play.url,
         description: projDesc.value.trim(),
         order: parseInt(projOrder.value) || 0,
         isRepoPublic: projIsPublic.checked,
         privateMessage: projPrivateMsg.value.trim()
     };
     if (!data.title) { showToast('Title required', true); return; }
+    if (play.error) { showToast(play.error, true); return; }
 
     try {
         if (projEditId.value) {
