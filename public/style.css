@@ -280,6 +280,16 @@ h2::after {
   transition: background-color var(--transition-speed), color var(--transition-speed), border-color var(--transition-speed);
 }
 
+/* Inline SVG icons. 1em is the 12px the Font Awesome glyphs measured, and
+   currentColor makes them follow the link's own color through :hover and
+   :active for free — no extra state rules. */
+.contact-links a svg {
+  width: 1em;
+  height: 1em;
+  fill: currentColor;
+  flex-shrink: 0;
+}
+
 .contact-links a:hover {
   background: var(--bg);
   color: var(--accent);
