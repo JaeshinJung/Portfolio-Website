@@ -61,7 +61,7 @@
                 container.innerHTML = '';
                 experiences.forEach(d => {
                     const achievementsHTML = (d.achievements || [])
-                        .map(a => `<li>${a}</li>`)
+                        .map(a => `<li>${escapeHtml(a)}</li>`)
                         .join('');
 
                     const card = document.createElement('div');
