@@ -89,6 +89,7 @@ const projTitle = document.getElementById('proj-title');
 const projImage = document.getElementById('proj-image');
 const projRepo = document.getElementById('proj-repo');
 const projDemo = document.getElementById('proj-demo');
+const projPlay = document.getElementById('proj-play');
 const projDesc = document.getElementById('proj-desc');
 const projOrder = document.getElementById('proj-order');
 const projEditId = document.getElementById('project-edit-id');
@@ -141,6 +142,7 @@ async function loadProjects() {
             projImage.value = d.imageUrl || '';
             projRepo.value = d.repoUrl || '';
             projDemo.value = d.demoUrl || '';
+            projPlay.value = d.playUrl || '';
             projDesc.value = d.description || '';
             projOrder.value = d.order ?? 0;
 
@@ -172,6 +174,7 @@ projSaveBtn.addEventListener('click', async () => {
         imageUrl: projImage.value.trim(),
         repoUrl: projRepo.value.trim(),
         demoUrl: projDemo.value.trim(),
+        playUrl: projPlay.value.trim(),
         description: projDesc.value.trim(),
         order: parseInt(projOrder.value) || 0,
         isRepoPublic: projIsPublic.checked,
@@ -202,6 +205,7 @@ function resetProjectForm() {
     projImage.value = '';
     projRepo.value = '';
     projDemo.value = '';
+    projPlay.value = '';
     projDesc.value = '';
     projOrder.value = '0';
     projIsPublic.checked = true;
