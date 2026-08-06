@@ -362,15 +362,24 @@ h2::after {
 /* ============================================================
    PROJECT GRID
    ============================================================ */
-/* One track definition for every width. auto-fit alone decides the column
-   count, so the grid never contradicts itself across breakpoints:
-   1 column below 653px, 2 up to 1010px, 3 up to 1335px, then 4.
+/* One track definition from phone to laptop. auto-fit alone decides the column
+   count there, so the grid never contradicts itself across breakpoints:
+   1 column below 653px, 2 up to 1010px, 3 from 1011px.
    See the RESPONSIVE section for how those numbers fall out of .container. */
 .project-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 28px;
   justify-content: center;
+}
+
+/* Cap at 3 columns. Left to itself auto-fit opens a 4th track at 1335px —
+   0.95W - 64 >= 280*4 + 28*3 solves to W >= 1334.7 — which shrinks every
+   screenshot from 382px to 280px wide. The screenshots *are* the content of a
+   stage-select grid, so three large stages beat four small ones. Accepted
+   consequence: the page is taller at 1440 than at 1024. That is not a bug. */
+@media (min-width: 1335px) {
+  .project-grid { grid-template-columns: repeat(3, 1fr); }
 }
 
 /* Stage card. The frame is CSS-only for now — a 2px token border. A pixel
