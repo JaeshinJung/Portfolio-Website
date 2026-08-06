@@ -14,13 +14,21 @@
   --bg:          #0C0A0F;
   --surface:     #16121C;
   --surface-2:   #1F1A28;   /* nested / hover */
-  --line:        #2E2540;   /* resting borders, grid */
+  --line:        #2E2540;   /* resting borders, grid — decorative only */
   --line-strong: #453A60;   /* emphasized border */
+
+  /* Resting boundary of interactive controls (inputs, textareas, tabs,
+     checkboxes). Deliberately lighter than --line: WCAG 2.1 SC 1.4.11
+     requires 3:1 for a UI component's visual boundary, and --line only
+     reaches 1.36:1 on --bg / 1.28:1 on --surface. This measures 3.47:1
+     on --bg and 3.25:1 on --surface. Do NOT fold this back into --line —
+     that would put a visible outline on every decorative card, where
+     1.4.11 does not apply. */
+  --line-control: #6E5D9A;
 
   /* Text */
   --text:        #E8E4F0;
   --text-dim:    #9A90AE;
-  --text-faint:  #8A81A4;   /* lightened from #6B6280 to clear 4.5:1 */
 
   /* Gold — UI and things worth collecting */
   --accent:      #FFD447;
@@ -239,7 +247,7 @@ h2::after {
   font-family: var(--font-display);
   font-size: 11px;
   font-weight: 700;
-  color: var(--text-faint);
+  color: var(--text-dim);
   text-align: center;
   margin-bottom: 14px;
   letter-spacing: 1px;
@@ -397,7 +405,7 @@ h2::after {
 .card .date {
   font-family: var(--font-body);
   font-size: 13px;
-  color: var(--text-faint);
+  color: var(--text-dim);
   margin-bottom: 16px;
 }
 
@@ -626,7 +634,7 @@ h2::after {
 .empty-state {
   text-align: center;
   padding: 48px;
-  color: var(--text-faint);
+  color: var(--text-dim);
   font-family: var(--font-body);
   font-size: 14px;
 }
@@ -666,7 +674,7 @@ h2::after {
   font-weight: 400;
   background: var(--bg);
   color: var(--text);
-  border: 2px solid var(--line);
+  border: 2px solid var(--line-control);
   margin-bottom: 18px;
   outline: none;
   transition: border-color 0.2s;
@@ -677,7 +685,7 @@ h2::after {
 }
 
 .pixel-input::placeholder {
-  color: var(--text-faint);
+  color: var(--text-dim);
   font-weight: 400;
 }
 
@@ -759,7 +767,7 @@ h2::after {
 .admin-user-info {
   font-family: var(--font-body);
   font-size: 12px;
-  color: var(--text-faint);
+  color: var(--text-dim);
 }
 
 /* Tab Navigation */
@@ -778,7 +786,7 @@ h2::after {
   padding: 10px 22px;
   background: var(--surface);
   color: var(--text-dim);
-  border: 2px solid var(--line);
+  border: 2px solid var(--line-control);
   cursor: pointer;
   transition: all 0.15s;
 }
@@ -837,7 +845,7 @@ h2::after {
   font-size: 14px;
   background: var(--bg);
   color: var(--text);
-  border: 2px solid var(--line);
+  border: 2px solid var(--line-control);
   outline: none;
   resize: vertical;
   min-height: 80px;
@@ -882,7 +890,7 @@ h2::after {
   height: 20px;
   background: var(--bg);
   flex-shrink: 0;
-  border: 2px solid var(--line);
+  border: 2px solid var(--line-control);
   transition: all 0.15s steps(3);
   position: relative;
 }
@@ -1018,7 +1026,7 @@ h2::after {
   position: absolute;
   width: 2px;
   height: 2px;
-  background: var(--text-faint);
+  background: var(--text-dim);
   animation: twinkle 3s infinite alternate;
 }
 
