@@ -432,7 +432,12 @@ h2::after {
 
 .video-btn {
   display: inline-block;
-  margin-top: 14px;
+  /* Vertical padding, not margin: at a 12px font the line box is only 21.6px
+     tall, so the hit box failed WCAG 2.1 SC 2.5.8 (24px). 12px top/bottom
+     takes it to 45.6px, matching the 44px Repository button beside it. The
+     14px margin-top this replaces only pushed the link below the button's
+     centre line inside .project-card-actions. */
+  padding: 12px 0;
   color: var(--accent);
   font-family: var(--font-display);
   font-size: 12px;
@@ -885,7 +890,9 @@ h2::after {
 
 .btn-sm {
   font-family: var(--font-display);
-  font-size: 11px;
+  /* 12px is the floor for Silkscreen: below that its 5px x-height turns to
+     mush. 11px was the only sub-12px size in this sheet. */
+  font-size: 12px;
   padding: 8px 12px;
   cursor: pointer;
 }
@@ -936,8 +943,16 @@ h2::after {
    the home page became 5338px — taller than the same page at 390px (4451px). */
 @media (max-width: 768px) {
   body { font-size: 14px; }
+  /* 8px, down from 16px: the link padding below grows each tap target from
+     33.6px to 45.6px, and a sticky bar has no business taking 78px of a
+     640px-tall phone screen. Net bar height 61.6px, slightly under the 67.6px
+     it was before. */
+  nav { padding: 8px 0; }
   nav ul { flex-wrap: wrap; gap: 4px; }
-  nav ul li a { font-size: 12px; padding: 6px 10px; }
+  /* 12px vertical padding: 21.6px line box + 24px = 45.6px, clearing the 44px
+     of WCAG 2.1 SC 2.5.5. Horizontal padding stays at 10px — the three links
+     already measure 289.4px of the 360px bar. */
+  nav ul li a { font-size: 12px; padding: 12px 10px; }
   .hud h1 { font-size: 16px; }
   .hud-subtitle { font-size: 12px; }
   .admin-header { flex-direction: column; gap: 14px; text-align: center; }
