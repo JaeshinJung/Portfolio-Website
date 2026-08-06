@@ -11,8 +11,6 @@
 </head>
 
 <body>
-    <div class="stars" id="stars-bg"></div>
-
     <nav>
         <ul>
             <li><a href="index.html">Home</a></li>
@@ -75,18 +73,6 @@
         }
 
         loadExperiences();
-
-        // Stars
-        const starsContainer = document.getElementById('stars-bg');
-        for (let i = 0; i < 60; i++) {
-            const star = document.createElement('div');
-            star.classList.add('star');
-            star.style.left = Math.random() * 100 + '%';
-            star.style.top = Math.random() * 100 + '%';
-            star.style.animationDelay = Math.random() * 3 + 's';
-            star.style.animationDuration = (2 + Math.random() * 3) + 's';
-            starsContainer.appendChild(star);
-        }
     </script>
 </body>
 

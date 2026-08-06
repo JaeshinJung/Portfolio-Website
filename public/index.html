@@ -12,9 +12,6 @@
 </head>
 
 <body>
-    <!-- Pixel Stars Background -->
-    <div class="stars" id="stars-bg"></div>
-
     <nav>
         <ul>
             <li><a href="index.html" class="active">Home</a></li>
@@ -49,19 +46,6 @@
         </div>
     </div>
 
-    <script>
-        // Generate random pixel stars
-        const starsContainer = document.getElementById('stars-bg');
-        for (let i = 0; i < 60; i++) {
-            const star = document.createElement('div');
-            star.classList.add('star');
-            star.style.left = Math.random() * 100 + '%';
-            star.style.top = Math.random() * 100 + '%';
-            star.style.animationDelay = Math.random() * 3 + 's';
-            star.style.animationDuration = (2 + Math.random() * 3) + 's';
-            starsContainer.appendChild(star);
-        }
-    </script>
     <script type="module">
         import { db } from './firebase-config.js';
         import { getDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";

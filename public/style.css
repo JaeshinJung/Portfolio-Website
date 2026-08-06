@@ -76,25 +76,6 @@ body {
   overflow-x: hidden;
 }
 
-/* CRT Scanline Overlay — very subtle */
-body::after {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 2px,
-    rgba(0, 0, 0, 0.03) 2px,
-    rgba(0, 0, 0, 0.03) 4px
-  );
-  pointer-events: none;
-  z-index: 9999;
-}
-
 /* --- Selections --- */
 ::selection {
   background: var(--accent);
@@ -142,7 +123,7 @@ nav ul li a {
   text-transform: uppercase;
   letter-spacing: 0.06em;
   padding: 8px 16px;
-  transition: all var(--transition-speed) steps(3);
+  transition: all var(--transition-speed);
   position: relative;
   display: inline-block;
 }
@@ -231,12 +212,6 @@ h2::after {
   position: relative;
   border: 2px solid var(--line);
   transition: border-color 0.3s;
-  animation: avatar-idle 3s ease-in-out infinite;
-}
-
-@keyframes avatar-idle {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
 }
 
 .avatar-frame:hover {
@@ -283,14 +258,6 @@ h2::after {
   font-size: 32px;
   color: var(--accent);
   margin-bottom: 14px;
-  animation: flicker 4s infinite alternate;
-}
-
-@keyframes flicker {
-  0%, 96%, 100% { opacity: 1; }
-  97% { opacity: 0.85; }
-  98% { opacity: 1; }
-  99% { opacity: 0.9; }
 }
 
 .subtitle {
@@ -340,7 +307,7 @@ h2::after {
   letter-spacing: 0.06em;
   text-decoration: none;
   border: 2px solid var(--accent);
-  transition: all var(--transition-speed) steps(4);
+  transition: all var(--transition-speed);
 }
 
 .contact-links a:hover {
@@ -364,23 +331,6 @@ h2::after {
   border: 2px solid var(--line);
   text-align: left;
   transition: all var(--transition-speed);
-  position: relative;
-  overflow: hidden;
-}
-
-.card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 212, 71, 0.03), transparent);
-  transition: left 0.5s;
-}
-
-.card:hover::before {
-  left: 100%;
 }
 
 .card:hover {
@@ -700,7 +650,7 @@ h2::after {
   color: var(--bg);
   border: 2px solid var(--accent);
   cursor: pointer;
-  transition: all 0.15s steps(3);
+  transition: all var(--transition-speed);
 }
 
 .pixel-btn:hover {
@@ -1006,31 +956,4 @@ h2::after {
   .admin-item { flex-direction: column; }
   .contact-links { flex-direction: column; align-items: center; }
   .container { padding: 36px 16px 60px; }
-}
-
-/* ============================================================
-   AMBIENT BACKGROUND — DRIFTING DUST MOTES
-   ============================================================ */
-.stars {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: -1;
-  overflow: hidden;
-}
-
-.star {
-  position: absolute;
-  width: 2px;
-  height: 2px;
-  background: var(--text-dim);
-  animation: twinkle 3s infinite alternate;
-}
-
-@keyframes twinkle {
-  0% { opacity: 0.15; }
-  100% { opacity: 0.7; }
 }
