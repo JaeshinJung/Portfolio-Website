@@ -29,23 +29,37 @@
     <script type="module">
         import { db } from './firebase-config.js';
         import { escapeHtml } from './utils.js';
-        import { collection, getDocs, orderBy, query } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const container = document.getElementById('experience-list');
 
         async function loadExperiences() {
             try {
-                const q = query(collection(db, 'experiences'), orderBy('order', 'asc'));
-                const snapshot = await getDocs(q);
+                const snapshot = await getDocs(collection(db, 'experiences'));
 
                 if (snapshot.empty) {
                     container.innerHTML = '<p class="empty-state">No experience data yet. Add entries from the admin panel.</p>';
                     return;
                 }
 
+                // Sort client-side, not with orderBy(): both documents carry
+                // order: 0, so ordering on it alone is nondeterministic, and a
+                // second orderBy would need a Firestore composite index. Same
+                // fix as the stage grid on index.html.
+                const experiences = snapshot.docs.map(d => d.data());
+                experiences.sort((a, b) => {
+                    const orderA = Number(a.order) || 0;
+                    const orderB = Number(b.order) || 0;
+                    if (orderA !== orderB) return orderA - orderB;
+                    const roleA = a.role || '';
+                    const roleB = b.role || '';
+                    if (roleA < roleB) return -1;
+                    if (roleA > roleB) return 1;
+                    return 0;
+                });
+
                 container.innerHTML = '';
-                snapshot.forEach(doc => {
-                    const d = doc.data();
+                experiences.forEach(d => {
                     const achievementsHTML = (d.achievements || [])
                         .map(a => `<li>${a}</li>`)
                         .join('');

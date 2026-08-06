@@ -41,21 +41,36 @@
         // Aliased: this file's call sites all read esc(), and renaming them is
         // churn that has nothing to do with removing the duplicate.
         import { escapeHtml as esc } from './utils.js';
-        import { collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         document.addEventListener('DOMContentLoaded', async () => {
             const container = document.getElementById('skills-container');
 
             try {
-                const q = query(collection(db, 'skills'), orderBy('order', 'asc'));
-                const snap = await getDocs(q);
-                
+                const snap = await getDocs(collection(db, 'skills'));
+
                 if (snap.empty) {
                     container.innerHTML = '<p>No technical skills entries yet.</p>';
                 } else {
+                    // Sort client-side, not with orderBy(): the same fix the
+                    // stage grid on index.html needed. These four categories do
+                    // currently hold distinct order values, so this is the
+                    // latent case rather than the live one — the tiebreaker
+                    // keeps it deterministic the first time two of them collide.
+                    const skills = snap.docs.map(d => d.data());
+                    skills.sort((a, b) => {
+                        const orderA = Number(a.order) || 0;
+                        const orderB = Number(b.order) || 0;
+                        if (orderA !== orderB) return orderA - orderB;
+                        const catA = a.category || '';
+                        const catB = b.category || '';
+                        if (catA < catB) return -1;
+                        if (catA > catB) return 1;
+                        return 0;
+                    });
+
                     container.innerHTML = '';
-                    snap.forEach(docSnap => {
-                        const d = docSnap.data();
+                    skills.forEach(d => {
                         const itemsStr = d.items || '';
                         
                         // Parse multiline string or fallback to comma-split
