@@ -58,6 +58,43 @@
 
         const container = document.getElementById('project-list');
 
+        // Firestore stores every screenshot as an absolute GitHub blob URL even
+        // though the identical file already ships in public/assets/. Rewriting to
+        // the local path keeps the images on Hosting's CDN, takes a third-party
+        // origin off the critical path, and stops all seven breaking the day the
+        // repo goes private. Matched on the URL's basename, never on the title:
+        // Firestore says 'Horror School' while the file is HorroSchool.png.
+        const GITHUB_ASSET_URL = /^https:\/\/github\.com\/[^/]+\/[^/]+\/blob\/[^/]+\/public\/assets\/([^/?#]+)(?:[?#]|$)/;
+
+        // Intrinsic size of each local file so the browser can reserve the box
+        // before the bytes arrive. None of these is exactly 16:9, so the card's
+        // aspect-ratio + object-fit: cover crops them.
+        const LOCAL_ASSETS = {
+            'Console Shooting.png': [2336, 1125],
+            'Defusion Confusion.png': [1907, 1018],
+            'Dungeon Maze.png': [1773, 1049],
+            'Eraser Escape.png': [1424, 841],
+            'HorroSchool.png': [1854, 931],
+            'IEEE-Tech.png': [1345, 908],
+            "Jackson's Boba Beat.png": [1902, 926],
+        };
+
+        // null for anything we cannot prove is local, so an unrecognised
+        // imageUrl is left exactly as Firestore holds it.
+        function localAsset(url) {
+            const match = GITHUB_ASSET_URL.exec(url);
+            if (!match) return null;
+            let file;
+            try {
+                file = decodeURIComponent(match[1]);
+            } catch {
+                return null; // malformed percent-escape
+            }
+            const size = LOCAL_ASSETS[file];
+            if (!size) return null;
+            return { src: `assets/${encodeURIComponent(file)}`, width: size[0], height: size[1] };
+        }
+
         async function loadHome() {
             try {
                 const homeDoc = await getDoc(doc(db, 'siteContent', 'home'));
@@ -121,9 +158,13 @@
                         ? 'loading="eager" fetchpriority="high"'
                         : 'loading="lazy" decoding="async"';
 
-                    const imgTag = d.imageUrl
-                        ? `<img src="${escapeHtml(d.imageUrl)}" alt="${title}" ${loadAttrs}>`
-                        : '';
+                    const local = d.imageUrl ? localAsset(d.imageUrl) : null;
+                    let imgTag = '';
+                    if (d.imageUrl) {
+                        const src = local ? local.src : d.imageUrl;
+                        const size = local ? ` width="${local.width}" height="${local.height}"` : '';
+                        imgTag = `<img src="${escapeHtml(src)}" alt="${title}"${size} ${loadAttrs}>`;
+                    }
 
                     const demoBtn = d.demoUrl
                         ? `<a href="${escapeHtml(d.demoUrl)}" class="video-btn" target="_blank">&#9654; View Demo</a>`
@@ -138,6 +179,14 @@
                             ${demoBtn}
                         </div>
                     `;
+
+                    // If the local file is ever renamed or missing, degrade to the
+                    // URL Firestore holds. { once: true }, so a fallback that
+                    // also fails cannot loop.
+                    if (local) {
+                        const img = card.querySelector('img');
+                        img.addEventListener('error', () => { img.src = d.imageUrl; }, { once: true });
+                    }
 
                     // The description is clamped to 3 lines in CSS, so keep the
                     // full text reachable on hover. Set as a property, not in the
