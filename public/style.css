@@ -362,10 +362,14 @@ h2::after {
 /* ============================================================
    PROJECT GRID
    ============================================================ */
+/* One track definition for every width. auto-fit alone decides the column
+   count, so the grid never contradicts itself across breakpoints:
+   1 column below 653px, 2 up to 1010px, 3 up to 1335px, then 4.
+   See the RESPONSIVE section for how those numbers fall out of .container. */
 .project-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
-  gap: 40px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 28px;
   justify-content: center;
 }
 
@@ -704,6 +708,10 @@ h2::after {
 /* Tab Navigation */
 .tab-nav {
   display: flex;
+  /* The four tabs measure 506px at a 12px font; without wrapping they ran to
+     scrollWidth 530 inside a 360px viewport and the Skills tab was clipped
+     away by body's overflow-x: hidden, i.e. unreachable on a phone. */
+  flex-wrap: wrap;
   gap: 6px;
   margin-bottom: 28px;
 }
@@ -921,20 +929,26 @@ h2::after {
 /* ============================================================
    RESPONSIVE
    ============================================================ */
-@media (max-width: 1024px) {
-  .project-grid { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 28px; }
-}
-
+/* Tablet and phone: tighter chrome and gutters. The stage grid is NOT forced
+   to one column here — at 768px .container offers 0.95 * 768 - 32 = 697.6px,
+   which holds two 280px tracks plus the 28px gap (588px). Forcing one column
+   at 768 made every card 697px wide, so each 16:9 image grew to 392px tall and
+   the home page became 5338px — taller than the same page at 390px (4451px). */
 @media (max-width: 768px) {
   body { font-size: 14px; }
   nav ul { flex-wrap: wrap; gap: 4px; }
   nav ul li a { font-size: 12px; padding: 6px 10px; }
   .hud h1 { font-size: 16px; }
   .hud-subtitle { font-size: 12px; }
-  .project-grid { grid-template-columns: 1fr; }
-  .project-card { max-width: 100%; }
   .admin-header { flex-direction: column; gap: 14px; text-align: center; }
   .admin-item { flex-direction: column; }
-  .contact-links { flex-direction: column; align-items: center; }
   .container { padding: 36px 16px 60px; }
+}
+
+/* Phones only. 652px is where the second stage column stops fitting:
+   0.95W - 32 >= 588 solves to W >= 652.7, so 653px is the first width that
+   holds two columns and auto-fit drops to one column on its own below it.
+   Only genuinely row-bound things need stacking here. */
+@media (max-width: 652px) {
+  .contact-links { flex-direction: column; align-items: center; }
 }
