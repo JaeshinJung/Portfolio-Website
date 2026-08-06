@@ -16,24 +16,30 @@
         <ul>
             <li><a href="index.html" class="active">Home</a></li>
             <li><a href="experience.html">Experience</a></li>
-            <li><a href="projects.html">Projects</a></li>
             <li><a href="skills-awards.html">Skills</a></li>
         </ul>
     </nav>
 
-    <div class="container main-hero">
+    <div class="container">
 
-        <!-- Character Select Frame -->
-        <div class="avatar-frame">
-            <div class="avatar-frame-label">- Select Player -</div>
-            <img src="assets/avatar.png" alt="Jaeshin Jung — Pixel Avatar" class="profile-img" id="home-img">
-            <div class="avatar-frame-name">Player 1</div>
+        <!-- HUD — avatar + name + tagline on one compact row -->
+        <div class="hud">
+            <img src="assets/avatar.png" alt="Jaeshin Jung — pixel avatar" class="hud-avatar" id="home-img">
+            <div class="hud-text">
+                <h1 id="home-title">Loading...</h1>
+                <p class="hud-subtitle" id="home-subtitle">Loading...</p>
+            </div>
         </div>
 
-        <h1 id="home-title">Loading...</h1>
-        <p class="subtitle" id="home-subtitle">Loading...</p>
+        <h2>Select Stage</h2>
+        <div class="project-grid" id="project-list">
+            <p class="loading-text" style="grid-column: 1 / -1;">Loading data...</p>
+        </div>
 
-        <div class="bio" id="home-about">
+        <hr class="section-divider">
+
+        <h2>About</h2>
+        <div class="about-text" id="home-about">
             <p>Loading...</p>
         </div>
 
@@ -48,9 +54,11 @@
 
     <script type="module">
         import { db } from './firebase-config.js';
-        import { getDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { collection, getDocs, getDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        document.addEventListener('DOMContentLoaded', async () => {
+        const container = document.getElementById('project-list');
+
+        async function loadHome() {
             try {
                 const homeDoc = await getDoc(doc(db, 'siteContent', 'home'));
                 if (homeDoc.exists()) {
@@ -58,7 +66,7 @@
                     if (data.profileImageUrl) document.getElementById('home-img').src = data.profileImageUrl;
                     if (data.heroTitle) document.getElementById('home-title').textContent = data.heroTitle;
                     if (data.heroSubtitle) document.getElementById('home-subtitle').textContent = data.heroSubtitle;
-                    
+
                     // Replace newlines with <br> to preserve typical multiline text
                     if (data.aboutMeText) {
                         const formattedText = data.aboutMeText.replace(/\n/g, '<br>');
@@ -73,7 +81,90 @@
                 console.error("Error loading home:", e);
                 document.getElementById('home-title').textContent = 'Error Loading Data';
             }
-        });
+        }
+
+        async function loadProjects() {
+            try {
+                const snapshot = await getDocs(collection(db, 'projects'));
+
+                if (snapshot.empty) {
+                    container.innerHTML = '<p class="empty-state" style="grid-column:1/-1;">No projects yet. Add entries from the admin panel.</p>';
+                    return;
+                }
+
+                // Sort client-side, not with orderBy(): the 'order' field has
+                // duplicate values, so ordering on it alone is nondeterministic,
+                // and a second orderBy would need a Firestore composite index.
+                const projects = snapshot.docs.map(d => d.data());
+                projects.sort((a, b) => {
+                    const orderA = Number(a.order) || 0;
+                    const orderB = Number(b.order) || 0;
+                    if (orderA !== orderB) return orderA - orderB;
+                    const titleA = a.title || '';
+                    const titleB = b.title || '';
+                    if (titleA < titleB) return -1;
+                    if (titleA > titleB) return 1;
+                    return 0;
+                });
+
+                container.innerHTML = '';
+                projects.forEach((d, i) => {
+                    const card = document.createElement('div');
+                    card.className = 'project-card';
+
+                    const isPublic = d.isRepoPublic !== false; // backward compat
+                    const title = escapeHtml(d.title || 'Untitled');
+
+                    // The first row is above the fold: lazy-loading it would only
+                    // delay it. Everything after row 1 loads lazily.
+                    const loadAttrs = i < 3
+                        ? 'loading="eager" fetchpriority="high"'
+                        : 'loading="lazy" decoding="async"';
+
+                    const imgTag = d.imageUrl
+                        ? `<img src="${escapeHtml(d.imageUrl)}" alt="${title}" ${loadAttrs}>`
+                        : '';
+
+                    const demoBtn = d.demoUrl
+                        ? `<a href="${escapeHtml(d.demoUrl)}" class="video-btn" target="_blank">&#9654; View Demo</a>`
+                        : '';
+
+                    card.innerHTML = `
+                        ${imgTag}
+                        <h3>${title}</h3>
+                        <p>${escapeHtml(d.description || '')}</p>
+                        <div class="project-card-actions">
+                            <button class="pixel-btn repo-btn" data-repo-public="${isPublic}" data-repo-url="${escapeHtml(d.repoUrl || '')}" data-private-msg="${escapeHtml(d.privateMessage || '')}">Repository</button>
+                            ${demoBtn}
+                        </div>
+                    `;
+
+                    // Attach click handler to the Repository button
+                    const repoBtn = card.querySelector('.repo-btn');
+                    repoBtn.addEventListener('click', () => {
+                        if (repoBtn.dataset.repoPublic === 'true' && repoBtn.dataset.repoUrl) {
+                            window.open(repoBtn.dataset.repoUrl, '_blank');
+                        } else {
+                            alert(repoBtn.dataset.privateMsg || 'Due to security regulations, the code is kept confidential.');
+                        }
+                    });
+
+                    container.appendChild(card);
+                });
+            } catch (err) {
+                console.error('Firestore error:', err);
+                container.innerHTML = '<p class="empty-state" style="grid-column:1/-1;">Failed to load projects.</p>';
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        loadHome();
+        loadProjects();
     </script>
 </body>
 

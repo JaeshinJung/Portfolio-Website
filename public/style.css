@@ -196,93 +196,61 @@ h2::after {
 }
 
 /* ============================================================
-   HOME — HERO SECTION
+   HOME — HUD BAR
+   One compact row above the stage grid: pixel avatar, name, tagline.
    ============================================================ */
-.main-hero {
-  text-align: center;
-  padding-top: 64px;
-}
-
-/* --- Character Select Avatar Frame --- */
-.avatar-frame {
-  display: inline-block;
+.hud {
+  display: flex;
+  align-items: center;
+  gap: 16px;
   background: var(--surface);
-  padding: 20px 28px 16px;
-  margin-bottom: 32px;
-  position: relative;
+  padding: 12px 16px;
+  margin-bottom: 44px;
   border: 2px solid var(--line);
-  transition: border-color 0.3s;
 }
 
-.avatar-frame:hover {
-  border-color: var(--accent);
-}
-
-.avatar-frame-label {
-  font-family: var(--font-display);
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--text-dim);
-  text-align: center;
-  margin-bottom: 14px;
-  letter-spacing: 1px;
-  animation: blink-cursor 1.2s step-end infinite;
-}
-
-.avatar-frame-name {
-  font-family: var(--font-display);
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--accent);
-  text-align: center;
-  margin-top: 14px;
-}
-
-.profile-img {
-  width: 180px;
-  height: 180px;
+.hud-avatar {
+  width: 56px;
+  height: 56px;
   object-fit: cover;
-  border-radius: 0;
   image-rendering: pixelated;
-  display: block;
-  margin: 0 auto;
+  flex-shrink: 0;
   border: 2px solid var(--line-strong);
-  transition: border-color 0.3s;
 }
 
-.avatar-frame:hover .profile-img {
-  border-color: var(--accent);
+.hud-text {
+  min-width: 0;
 }
 
-.main-hero h1 {
-  font-size: 32px;
+.hud h1 {
+  font-size: 20px;
   color: var(--accent);
-  margin-bottom: 14px;
+  line-height: 1.4;
 }
 
-.subtitle {
+.hud-subtitle {
   font-family: var(--font-body);
-  font-size: 14px;
-  font-weight: 400;
+  font-size: 13px;
   color: var(--text-dim);
-  margin-bottom: 28px;
-  letter-spacing: 0.01em;
+  line-height: 1.5;
 }
 
-.bio {
+/* ============================================================
+   HOME — ABOUT (below the grid: work first, person second)
+   ============================================================ */
+.section-divider {
+  border: 0;
+  border-top: 2px solid var(--line);
+  margin: 64px 0 56px;
+}
+
+.about-text {
   max-width: 700px;
-  margin: 0 auto 36px;
+  margin: 0 auto 32px;
   background: var(--surface);
   padding: 24px 28px;
   border: 2px solid var(--line);
   line-height: 1.9;
-}
-
-.bio p {
-  font-family: var(--font-body);
-  color: var(--text);
-  font-size: 15px;
-  font-weight: 400;
 }
 
 /* Contact Links */
@@ -399,6 +367,9 @@ h2::after {
   justify-content: center;
 }
 
+/* Stage card. The frame is CSS-only for now — a 2px token border. A pixel
+   portal sprite can later take over as border-image/background on this same
+   element, so no markup change will be needed when the art is ready. */
 .project-card {
   background: var(--surface);
   padding: 25px;
@@ -948,8 +919,8 @@ h2::after {
   body { font-size: 14px; }
   nav ul { flex-wrap: wrap; gap: 4px; }
   nav ul li a { font-size: 12px; padding: 6px 10px; }
-  .main-hero h1 { font-size: 22px; }
-  .subtitle { font-size: 12px; }
+  .hud h1 { font-size: 16px; }
+  .hud-subtitle { font-size: 12px; }
   .project-grid { grid-template-columns: 1fr; }
   .project-card { max-width: 100%; }
   .admin-header { flex-direction: column; gap: 14px; text-align: center; }
