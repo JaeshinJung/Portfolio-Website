@@ -485,6 +485,81 @@ h2::after {
 }
 
 /* ============================================================
+   PLAYABLE EMBED
+   The <iframe> is injected on click and never exists at page load: a Unity
+   WebGL build is tens of MB, so shipping one in the initial document would
+   undo everything else on this page. Exactly one may be live at a time —
+   two builds means two multi-tens-of-MB wasm heaps in one tab.
+   ============================================================ */
+/* A 362px grid cell cannot host a 960x600 build: the game's own UI text
+   would be illegible. So the card that is playing takes the whole row. */
+.project-card.is-playing {
+  grid-column: 1 / -1;
+}
+
+/* The screenshot stands in for the game. Once the game itself is on screen it
+   is only a spacer — 774px tall at 1440, which pushes the frame off-screen. */
+.project-card.is-playing img {
+  display: none;
+}
+
+.game-embed {
+  margin-top: 18px;
+}
+
+/* Holds the 960:600 box. width + max-width + aspect-ratio scales it down on a
+   narrow viewport at a constant 1.6, with no letterbox bars and no stretch. */
+.game-frame {
+  position: relative;
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  aspect-ratio: 960 / 600;
+  background: var(--bg);
+  border: 2px solid var(--line-strong);
+}
+
+.game-frame iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  border: 0;
+}
+
+/* Sits behind the iframe and covers only the moment before its first paint;
+   the build's own progress bar takes over from there. Reuses .loading-text
+   for the blink-cursor animation — the 48px block padding is not wanted
+   inside a box that is already the right size. */
+.game-frame .loading-text {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 0;
+}
+
+.game-close {
+  display: block;
+  margin: 14px auto 0;
+}
+
+/* Coarse pointer only. The reason these devices are excluded is unreliable
+   touch input and low-end performance, not download size, so the note is
+   shown wherever the pointer is coarse regardless of viewport width. */
+.play-note {
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+  padding: 12px 0;
+}
+
+/* ============================================================
    SKILLS PAGE
    ============================================================ */
 /* Update skills-awards.html layout */

@@ -150,6 +150,78 @@
             }
         }
 
+        // Excluded by input capability, not by width or user agent: a narrow
+        // desktop window must stay playable and a large tablet must not be,
+        // and the reason for excluding touch is unreliable input and low-end
+        // device performance, not bandwidth.
+        const canPlay = !window.matchMedia('(pointer: coarse)').matches;
+
+        // The one live embed, if any: { card, embed, btn }.
+        let liveGame = null;
+
+        function closeGame(restoreFocus) {
+            if (!liveGame) return;
+            const { card, embed, btn } = liveGame;
+            liveGame = null;
+            // about:blank BEFORE removal: that navigates the frame away and
+            // discards the loaded document with its wasm heap while the element
+            // is still in the tree. Removing the <iframe> outright leaves that
+            // to whenever the GC gets round to it.
+            const frame = embed.querySelector('iframe');
+            if (frame) frame.src = 'about:blank';
+            embed.remove();
+            card.classList.remove('is-playing');
+            btn.hidden = false;
+            if (restoreFocus) btn.focus();
+        }
+
+        function openGame(card, btn, url, title) {
+            closeGame(false); // one at a time
+
+            const embed = document.createElement('div');
+            embed.className = 'game-embed';
+            embed.tabIndex = -1;
+            embed.setAttribute('role', 'group');
+            embed.setAttribute('aria-label', `${title} — playable build`);
+
+            const frameBox = document.createElement('div');
+            frameBox.className = 'game-frame';
+
+            const placeholder = document.createElement('p');
+            placeholder.className = 'loading-text';
+            placeholder.textContent = 'Loading game...';
+
+            // Built with DOM APIs, not a template: escapeHtml() does not escape
+            // quotes, so a URL and a title must not go near an attribute here.
+            const frame = document.createElement('iframe');
+            frame.title = `${title} — playable build`;
+            frame.allow = 'autoplay; fullscreen; gamepad';
+            frame.allowFullscreen = true;
+            // No sandbox attribute: it would block the embed host's own scripts.
+            // The click is the user gesture, so audio autoplay is already
+            // permitted and needs no extra handling.
+            frame.src = url;
+
+            frameBox.append(placeholder, frame);
+
+            const close = document.createElement('button');
+            close.type = 'button';
+            close.className = 'pixel-btn secondary btn-sm game-close';
+            close.textContent = 'Close Game';
+            close.addEventListener('click', () => closeGame(true));
+
+            embed.append(frameBox, close);
+            card.appendChild(embed);
+            card.classList.add('is-playing');
+            btn.hidden = true;
+            liveGame = { card, embed, btn };
+            embed.focus();
+        }
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') closeGame(true);
+        });
+
         async function loadProjects() {
             try {
                 const snapshot = await getDocs(collection(db, 'projects'));
@@ -199,12 +271,31 @@
                         ? `<a href="${escapeHtml(d.demoUrl)}" class="video-btn" target="_blank">&#9654; View Demo</a>`
                         : '';
 
+                    // playUrl comes off the document, never a hardcoded map. No
+                    // playUrl means no control at all: no disabled button, no
+                    // placeholder. Where the pointer is coarse the demo video
+                    // stays the path, so only a note goes here.
+                    let playBtn = '';
+                    if (d.playUrl) {
+                        playBtn = canPlay
+                            ? '<button type="button" class="pixel-btn play-btn">Play</button>'
+                            : '<p class="play-note">Play on desktop</p>';
+                    }
+
+                    // Playing is the primary action, so Repository steps down to
+                    // .secondary — but only on a card that actually offers it, so
+                    // a card without playUrl looks exactly as it did before.
+                    const repoClass = d.playUrl && canPlay
+                        ? 'pixel-btn secondary repo-btn'
+                        : 'pixel-btn repo-btn';
+
                     card.innerHTML = `
                         ${imgTag}
                         <h3>${title}</h3>
                         <p>${escapeHtml(d.description || '')}</p>
                         <div class="project-card-actions">
-                            <button class="pixel-btn repo-btn" data-repo-public="${isPublic}" data-repo-url="${escapeHtml(d.repoUrl || '')}" data-private-msg="${escapeHtml(d.privateMessage || '')}">Repository</button>
+                            ${playBtn}
+                            <button class="${repoClass}" data-repo-public="${isPublic}" data-repo-url="${escapeHtml(d.repoUrl || '')}" data-private-msg="${escapeHtml(d.privateMessage || '')}">Repository</button>
                             ${demoBtn}
                         </div>
                     `;
@@ -231,6 +322,13 @@
                             alert(repoBtn.dataset.privateMsg || 'Due to security regulations, the code is kept confidential.');
                         }
                     });
+
+                    const play = card.querySelector('.play-btn');
+                    if (play) {
+                        play.addEventListener('click', () => {
+                            openGame(card, play, d.playUrl, d.title || 'Untitled');
+                        });
+                    }
 
                     container.appendChild(card);
                 });
