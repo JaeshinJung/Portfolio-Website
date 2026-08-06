@@ -841,7 +841,7 @@ h2::after {
   background: var(--bg);
   flex-shrink: 0;
   border: 2px solid var(--line-control);
-  transition: all 0.15s steps(3);
+  transition: all var(--transition-speed);
   position: relative;
 }
 
