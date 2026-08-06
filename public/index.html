@@ -66,19 +66,6 @@
         // Firestore says 'Horror School' while the file is HorroSchool.png.
         const GITHUB_ASSET_URL = /^https:\/\/github\.com\/[^/]+\/[^/]+\/blob\/[^/]+\/public\/assets\/([^/?#]+)(?:[?#]|$)/;
 
-        // Intrinsic size of each local file so the browser can reserve the box
-        // before the bytes arrive. None of these is exactly 16:9, so the card's
-        // aspect-ratio + object-fit: cover crops them.
-        const LOCAL_ASSETS = {
-            'Console Shooting.png': [2336, 1125],
-            'Defusion Confusion.png': [1907, 1018],
-            'Dungeon Maze.png': [1773, 1049],
-            'Eraser Escape.png': [1424, 841],
-            'HorroSchool.png': [1854, 931],
-            'IEEE-Tech.png': [1345, 908],
-            "Jackson's Boba Beat.png": [1902, 926],
-        };
-
         // The file's own name, URL-decoded. null for anything that is not the
         // expected blob shape, so an unrecognised URL is left exactly as
         // Firestore holds it.
@@ -92,13 +79,14 @@
             }
         }
 
-        // null for anything we cannot prove is local.
+        // The local path for a GitHub asset URL, or null if it is not one. No
+        // width/height hint goes with it: .project-card img already carries
+        // aspect-ratio: 16/9, which reserves the box on its own, so measured
+        // page height is byte-identical with and without the attributes.
         function localAsset(url) {
             const file = assetBasename(url);
             if (!file) return null;
-            const size = LOCAL_ASSETS[file];
-            if (!size) return null;
-            return { src: `assets/${encodeURIComponent(file)}`, width: size[0], height: size[1] };
+            return `assets/${encodeURIComponent(file)}`;
         }
 
         // siteContent/home.profileImageUrl points at the GitHub copy of
@@ -189,9 +177,8 @@
                     const local = d.imageUrl ? localAsset(d.imageUrl) : null;
                     let imgTag = '';
                     if (d.imageUrl) {
-                        const src = local ? local.src : d.imageUrl;
-                        const size = local ? ` width="${local.width}" height="${local.height}"` : '';
-                        imgTag = `<img src="${escapeHtml(src)}" alt="${title}"${size} ${loadAttrs}>`;
+                        const src = local || d.imageUrl;
+                        imgTag = `<img src="${escapeHtml(src)}" alt="${title}" ${loadAttrs}>`;
                     }
 
                     const demoBtn = d.demoUrl

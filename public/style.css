@@ -405,10 +405,10 @@ h2::after {
 
 .project-card img {
   width: 100%;
-  /* Required now that the tags carry intrinsic width/height attributes: those
-     map to presentational hints for the width/height properties, and a definite
-     height makes the browser ignore aspect-ratio. Without this the 16:9 box
-     became the file's own 1018px and the page grew from 4405px to 10195px. */
+  /* Keeps height indefinite so aspect-ratio below always wins. A width/height
+     attribute pair on the tag would otherwise become a presentational hint, and
+     a definite height makes the browser ignore aspect-ratio: that is how the
+     16:9 box once became the file's own 1018px and 360px grew to 10195px. */
   height: auto;
   aspect-ratio: 16 / 9;
   object-fit: cover;
