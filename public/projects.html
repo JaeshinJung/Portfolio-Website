@@ -3,101 +3,29 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description"
-        content="Technical projects by Jaeshin Jung — game engines, horror games, and systems programming.">
-    <title>Projects | Jaeshin Jung</title>
-    <link rel="stylesheet" href="style.css">
+    <meta http-equiv="refresh" content="0; url=/">
+    <meta name="robots" content="noindex">
+    <link rel="canonical" href="/">
+    <title>Redirecting to Home | Jaeshin Jung</title>
+    <script>location.replace('/');</script>
+    <style>
+        body {
+            background: #0C0A0F;
+            color: #E8E4F0;
+            font-family: system-ui, sans-serif;
+            padding: 48px 24px;
+            text-align: center;
+        }
+
+        a {
+            color: #FFD447;
+        }
+    </style>
 </head>
 
 <body>
-    <nav>
-        <ul>
-            <li><a href="index.html">Home</a></li>
-            <li><a href="experience.html">Experience</a></li>
-            <li><a href="projects.html" class="active">Projects</a></li>
-            <li><a href="skills-awards.html">Skills</a></li>
-        </ul>
-    </nav>
-
-    <div class="container">
-        <h2>Projects</h2>
-        <div class="project-grid" id="project-list">
-            <p class="loading-text" style="grid-column: 1 / -1;">Loading data...</p>
-        </div>
-    </div>
-
-    <script type="module">
-        import { db } from './firebase-config.js';
-        import { collection, getDocs, orderBy, query } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-        const container = document.getElementById('project-list');
-
-        async function loadProjects() {
-            try {
-                const q = query(collection(db, 'projects'), orderBy('order', 'asc'));
-                const snapshot = await getDocs(q);
-
-                if (snapshot.empty) {
-                    container.innerHTML = '<p class="empty-state" style="grid-column:1/-1;">No projects yet. Add entries from the admin panel.</p>';
-                    return;
-                }
-
-                container.innerHTML = '';
-                snapshot.forEach(doc => {
-                    const d = doc.data();
-                    const card = document.createElement('div');
-                    card.className = 'project-card';
-
-                    const isPublic = d.isRepoPublic !== false; // backward compat
-
-                    const imgTag = d.imageUrl
-                        ? `<img src="${escapeHtml(d.imageUrl)}" alt="${escapeHtml(d.title)}">`
-                        : '';
-
-                    const demoBtn = d.demoUrl
-                        ? `<a href="${escapeHtml(d.demoUrl)}" class="video-btn" target="_blank">&#9654; View Demo</a>`
-                        : '';
-
-                    // Build the card HTML (image + title wrapped in a div, not a link)
-                    card.innerHTML = `
-                        <div class="project-card-header">
-                            ${imgTag}
-                            <h3>${escapeHtml(d.title || 'Untitled')}</h3>
-                        </div>
-                        <p>${escapeHtml(d.description || '')}</p>
-                        <div class="project-card-actions">
-                            <button class="pixel-btn repo-btn" data-repo-public="${isPublic}" data-repo-url="${escapeHtml(d.repoUrl || '')}" data-private-msg="${escapeHtml(d.privateMessage || '')}">Repository</button>
-                            ${demoBtn}
-                        </div>
-                    `;
-
-                    // Attach click handler to the Repository button
-                    const repoBtn = card.querySelector('.repo-btn');
-                    repoBtn.addEventListener('click', () => {
-                        if (repoBtn.dataset.repoPublic === 'true' && repoBtn.dataset.repoUrl) {
-                            window.open(repoBtn.dataset.repoUrl, '_blank');
-                        } else {
-                            alert(repoBtn.dataset.privateMsg || 'Due to security regulations, the code is kept confidential.');
-                        }
-                    });
-
-                    container.appendChild(card);
-                });
-            } catch (err) {
-                console.error('Firestore error:', err);
-                container.innerHTML = '<p class="empty-state" style="grid-column:1/-1;">Failed to load projects.</p>';
-            }
-        }
-
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        loadProjects();
-    </script>
+    <p>The projects now live on the home page.</p>
+    <p><a href="/">Go to home</a></p>
 </body>
 
 </html>
