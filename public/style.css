@@ -492,9 +492,20 @@ h2::after {
    two builds means two multi-tens-of-MB wasm heaps in one tab.
    ============================================================ */
 /* A 362px grid cell cannot host a 960x600 build: the game's own UI text
-   would be illegible. So the card that is playing takes the whole row. */
+   would be illegible. So the card that is playing takes the whole row.
+   grid-column stays: leaving the cell is what makes the row reflow. */
 .project-card.is-playing {
   grid-column: 1 / -1;
+  /* But the row is 1304px at 1440 while .game-frame stops at 960, which left
+     145px of bare card either side of the game. Cap the card at the frame plus
+     its own box instead of scaling the game up: the embed is a cross-origin
+     iframe, so image-rendering: pixelated cannot be applied inside it, and
+     960 -> 1304 is a non-integer scale that would only blur the pixel art.
+     960 frame + 2 * 25px padding + 2 * 2px border, so the content box lands on
+     exactly 960. Binds from 1135px up (0.95W - 64 >= 1014); below that the card
+     is already narrower than the cap and nothing changes. */
+  max-width: calc(960px + 2 * 25px + 2 * 2px);
+  margin-inline: auto;
 }
 
 /* The screenshot stands in for the game. Once the game itself is on screen it
