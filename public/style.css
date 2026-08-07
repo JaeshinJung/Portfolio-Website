@@ -408,7 +408,11 @@ h2::after {
   transform: translate(-2px, -2px);
 }
 
-.project-card img {
+/* Direct child only. This rule describes the card's own screenshot box, and
+   the stage interior below nests images of its own — a 196x132 boss frame and
+   68px entity sprites — which must not inherit a 16:9 ratio, an 18px gutter
+   and a border. */
+.project-card > img {
   width: 100%;
   /* Keeps height indefinite so aspect-ratio below always wins. A width/height
      attribute pair on the tag would otherwise become a presentational hint, and
@@ -568,6 +572,235 @@ h2::after {
   letter-spacing: 0.06em;
   color: var(--text-dim);
   padding: 12px 0;
+}
+
+/* ============================================================
+   STAGE INTERIOR — the signature element
+   A stage opens inside its own card by the same mechanism the playable embed
+   uses: leave the grid cell, let the row reflow. Its premise is that
+   information is never gated behind interaction — the whole description is on
+   screen the moment the stage opens, and the entities are shortcuts to
+   actions, never the only route to a fact.
+   ============================================================ */
+/* The card's heading IS the door. A separate button in
+   .project-card-actions wraps that row inside a 258px-wide card at 360px and
+   moves the dormant grid's height, which must not move; and in a screen
+   titled SELECT STAGE the stage's name is the obvious thing to press. Every
+   declaration here only undoes UA button styling, so the h3 box measures
+   exactly what the bare text measured. */
+.stage-btn {
+  font: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  display: block;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  /* Underlined at rest rather than on hover, which is this sheet's usual
+     idiom: a touch screen has no hover, and this is the only door into the
+     stage. It also has to be an underline and not a leading marker glyph —
+     measured, '\25B6 ' takes the longest title to 257.6px inside a 256px card
+     at 360px, wrapping the heading and moving the dormant grid's height. */
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Expanded exactly like .is-playing — grid-column is what reflows the row.
+   Capped at the boss frame's 4x width plus the card's own box, so the sprite
+   lands on an integer scale instead of sprawling across a 1304px row. */
+.project-card.is-stage {
+  grid-column: 1 / -1;
+  max-width: calc(196px * 4 + 2 * 25px + 2 * 2px);
+  margin-inline: auto;
+}
+
+/* The card's summary is now duplicated by the stage below it: the screenshot
+   is inside the boss frame, the description is unclamped, and every action
+   has an entity. Direct children only — the stage's own <p> is deeper. */
+.project-card.is-stage > img,
+.project-card.is-stage > p,
+.project-card.is-stage > .project-card-actions {
+  display: none;
+}
+
+.stage {
+  margin-top: 18px;
+}
+
+.stage-title {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+/* The boss. No aspect-ratio needed: the frame sprite is an in-flow image, so
+   its own 196:132 box sets the height and the hole below can be pure
+   percentages of it. */
+.boss {
+  position: relative;
+  width: 100%;
+  max-width: 784px;
+  margin: 0 auto;
+}
+
+/* position: relative only so the frame paints ON TOP of the absolutely
+   positioned screenshot behind it, which comes first in the DOM. */
+.boss-art {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: auto;
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+
+/* The transparent hole is NOT centred in the sprite: its bounding box is
+   (48,34)-(147,108), 100x75, so its centre sits 5.5px below the image's.
+   These four numbers are that box as percentages of 196x132 — the screenshot
+   is placed against the hole, never against the image. */
+.boss-hole {
+  position: absolute;
+  left: 24.4898%;
+  top: 25.7576%;
+  width: 51.0204%;
+  height: 56.8182%;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+/* The hole is 4:3 and the screenshots run 1.48 to 2.08, so crop from the
+   centre rather than letterbox a portrait into a guardian's face. */
+.boss-hole img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* One entity per datum that exists — no disabled states, no placeholders. */
+.entities {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 18px;
+  margin-top: 20px;
+}
+
+.entity {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  /* Sized by its label, floored at the sprite's own width plus air. A fixed
+     96px box made DESCRIPTION overflow into REPOSITORY beside it and broke
+     DEMO VIDEO across two lines, so the row read as one run-on word. */
+  min-width: 96px;
+  white-space: nowrap;
+  /* Holds the box when an entity has no sprite, so the row stays even. */
+  min-height: 108px;
+  padding: 8px 10px;
+  background: none;
+  border: 2px solid transparent;
+  color: var(--text-dim);
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  line-height: 1.4;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color var(--transition-speed), border-color var(--transition-speed);
+}
+
+.entity:hover {
+  color: var(--accent);
+  border-color: var(--line-strong);
+}
+
+/* The one animation this site adds. 6px peak to peak over 3.2s, on the sprite
+   and not on the button, so the focus ring never moves with it. */
+.entity img {
+  width: 68px;
+  height: 68px;
+  image-rendering: pixelated;
+  animation: entity-float 3.2s ease-in-out infinite alternate;
+}
+
+@keyframes entity-float {
+  from { transform: translateY(-3px); }
+  to   { transform: translateY(3px); }
+}
+
+/* Half of them out of phase, so a row of creatures does not bob as one slab. */
+.entity:nth-child(even) img {
+  animation-delay: -1.6s;
+}
+
+/* The whole description, never clamped. .project-card p clamps the card's
+   summary to 3 lines precisely because there was nowhere else to read it —
+   this is that somewhere, so the clamp is undone here and only here. */
+.stage-desc {
+  max-width: 640px;
+  margin: 22px auto 0;
+  background: var(--bg);
+  padding: 18px 22px;
+  border: 2px solid var(--line);
+}
+
+.stage-desc p {
+  display: block;
+  -webkit-line-clamp: none;
+  line-clamp: none;
+  overflow: visible;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.stage-close {
+  display: block;
+  margin: 20px auto 0;
+}
+
+/* Touch: a plain readable column, no floating and no scattering. Gated on the
+   pointer and not on width, so a narrow desktop window keeps the full stage
+   and a large tablet does not. */
+@media (pointer: coarse) {
+  .entities {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .entity {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 14px;
+    width: 100%;
+    max-width: 320px;
+    min-height: 0;
+    text-align: left;
+  }
+
+  .entity img {
+    animation: none;
+  }
+}
+
+/* Non-negotiable: the float is the only motion this stylesheet adds, and
+   anyone who has asked the OS for less gets none of it. */
+@media (prefers-reduced-motion: reduce) {
+  .entity img {
+    animation: none;
+  }
 }
 
 /* ============================================================

@@ -156,8 +156,25 @@
         // device performance, not bandwidth.
         const canPlay = !window.matchMedia('(pointer: coarse)').matches;
 
+        // The Repository action, in one place: the card's button and the
+        // stage's repo entity are the same offer, so they must not drift —
+        // above all not the default message, which used to exist only here.
+        function repoAction(isPublic, url, privateMsg) {
+            if (isPublic && url) {
+                window.open(url, '_blank');
+            } else {
+                alert(privateMsg || 'Due to security regulations, the code is kept confidential.');
+            }
+        }
+
         // The one live embed, if any: { card, embed, btn }.
         let liveGame = null;
+
+        // The one open stage, if any: { card, stage, btn }. A stage and an
+        // embed both expand their card to the full row, so two open at once
+        // means two cards fighting over the grid. Never more than one of
+        // either, site-wide.
+        let liveStage = null;
 
         function closeGame(restoreFocus) {
             if (!liveGame) return;
@@ -175,8 +192,18 @@
             if (restoreFocus) btn.focus();
         }
 
+        function closeStage(restoreFocus) {
+            if (!liveStage) return;
+            const { card, stage, btn } = liveStage;
+            liveStage = null;
+            stage.remove();
+            card.classList.remove('is-stage');
+            if (restoreFocus) btn.focus();
+        }
+
         function openGame(card, btn, url, title) {
             closeGame(false); // one at a time
+            closeStage(false); // and never beside an open stage
 
             const embed = document.createElement('div');
             embed.className = 'game-embed';
@@ -218,8 +245,140 @@
             embed.focus();
         }
 
+        // A stage entity: a pixel creature that carries one action. The sprite
+        // is decoration for the label beside it, so alt is empty and the label
+        // is the accessible name. `tag` is 'a' for anything that navigates —
+        // the demo is a link, and a button that calls window.open would cost
+        // the middle-click, the context menu and the correct announcement.
+        // A null sprite renders the label alone: PLAY has no matching art yet.
+        function entity(tag, sprite, label) {
+            const el = document.createElement(tag);
+            if (tag === 'button') el.type = 'button';
+            el.className = 'entity';
+            if (sprite) {
+                const img = document.createElement('img');
+                img.src = `assets/sprites/${sprite}.png`;
+                img.alt = '';
+                img.width = 68;
+                img.height = 68;
+                el.appendChild(img);
+            }
+            const text = document.createElement('span');
+            text.textContent = label;
+            el.appendChild(text);
+            return el;
+        }
+
+        // Built with DOM APIs, not a template: escapeHtml() does not escape
+        // quotes, and a title, a URL and a description all land on attributes
+        // here. `n` is the card's position in the grid, so the heading names
+        // the stage the way the grid above it does.
+        function openStage(card, btn, d, n) {
+            closeGame(false);  // one panel at a time, either kind
+            closeStage(false);
+
+            const title = d.title || 'Untitled';
+
+            const stage = document.createElement('div');
+            stage.className = 'stage';
+            stage.tabIndex = -1;
+            stage.setAttribute('role', 'group');
+            stage.setAttribute('aria-label', `${title} — stage`);
+
+            const heading = document.createElement('h4');
+            heading.className = 'stage-title';
+            heading.textContent = `Stage ${n} — ${title}`;
+
+            // The screenshot goes BEHIND the frame's transparent hole, which
+            // is off-centre; .boss-hole holds the geometry. It is a second
+            // <img> element rather than the card's own moved into place — the
+            // card's is display: none while the stage is open, and the browser
+            // serves the second one from cache.
+            const boss = document.createElement('div');
+            boss.className = 'boss';
+            if (d.imageUrl) {
+                const hole = document.createElement('div');
+                hole.className = 'boss-hole';
+                const shot = document.createElement('img');
+                const local = localAsset(d.imageUrl);
+                shot.src = local || d.imageUrl;
+                if (local) shot.addEventListener('error', () => { shot.src = d.imageUrl; }, { once: true });
+                shot.alt = `${title} — screenshot`;
+                hole.appendChild(shot);
+                boss.appendChild(hole);
+            }
+            const art = document.createElement('img');
+            art.className = 'boss-art';
+            art.src = 'assets/sprites/boss-frame.png';
+            art.alt = ''; // ornament around the screenshot, not information
+            art.width = 196;
+            art.height = 132;
+            boss.appendChild(art);
+
+            // Always present and never behind a click: the entity below only
+            // moves focus here, it does not reveal anything.
+            const desc = document.createElement('div');
+            desc.className = 'stage-desc';
+            desc.tabIndex = -1;
+            desc.setAttribute('role', 'group');
+            desc.setAttribute('aria-label', `${title} — description`);
+            const body = document.createElement('p');
+            body.textContent = d.description || '';
+            desc.appendChild(body);
+
+            const entities = document.createElement('div');
+            entities.className = 'entities';
+
+            if (d.description) {
+                const read = entity('button', 'entity-highlights', 'Description');
+                read.addEventListener('click', () => desc.focus());
+                entities.appendChild(read);
+            }
+
+            // Hands off to the card's own Play button so closeGame() restores
+            // focus to a control that still exists: this stage is gone by then.
+            const play = card.querySelector('.play-btn');
+            if (play) {
+                const enter = entity('button', null, 'Play');
+                enter.addEventListener('click', () => openGame(card, play, d.playUrl, title));
+                entities.appendChild(enter);
+            }
+
+            // Always offered, exactly like the card's button: a repository that
+            // is not public is not missing data, it is the confidentiality note.
+            const repo = entity('button', 'entity-repo', 'Repository');
+            repo.addEventListener('click', () => repoAction(d.isRepoPublic !== false, d.repoUrl, d.privateMessage));
+            entities.appendChild(repo);
+
+            if (d.demoUrl) {
+                const demo = entity('a', 'entity-demo', 'Demo Video');
+                demo.href = d.demoUrl;
+                demo.target = '_blank';
+                entities.appendChild(demo);
+            }
+
+            const close = document.createElement('button');
+            close.type = 'button';
+            close.className = 'pixel-btn secondary btn-sm stage-close';
+            close.textContent = 'Close Stage';
+            close.addEventListener('click', () => closeStage(true));
+
+            stage.append(heading, boss, entities);
+            if (d.description) stage.appendChild(desc);
+            stage.appendChild(close);
+
+            card.appendChild(stage);
+            card.classList.add('is-stage');
+            liveStage = { card, stage, btn };
+            stage.focus();
+        }
+
         document.addEventListener('keydown', e => {
-            if (e.key === 'Escape') closeGame(true);
+            if (e.key !== 'Escape') return;
+            // At most one of the two is open, so this closes exactly one panel
+            // and hands focus back to whatever opened it.
+            closeGame(true);
+            closeStage(true);
         });
 
         async function loadProjects() {
@@ -291,7 +450,7 @@
 
                     card.innerHTML = `
                         ${imgTag}
-                        <h3>${title}</h3>
+                        <h3><button type="button" class="stage-btn">${title}</button></h3>
                         <p>${escapeHtml(d.description || '')}</p>
                         <div class="project-card-actions">
                             ${playBtn}
@@ -316,12 +475,15 @@
                     // Attach click handler to the Repository button
                     const repoBtn = card.querySelector('.repo-btn');
                     repoBtn.addEventListener('click', () => {
-                        if (repoBtn.dataset.repoPublic === 'true' && repoBtn.dataset.repoUrl) {
-                            window.open(repoBtn.dataset.repoUrl, '_blank');
-                        } else {
-                            alert(repoBtn.dataset.privateMsg || 'Due to security regulations, the code is kept confidential.');
-                        }
+                        repoAction(repoBtn.dataset.repoPublic === 'true', repoBtn.dataset.repoUrl, repoBtn.dataset.privateMsg);
                     });
+
+                    // The heading is the way in. Its visible text is the whole
+                    // accessible name — no aria-label, which would only repeat
+                    // it — and 'Enter stage' is what the region it opens is
+                    // called, announced on arrival.
+                    const stageBtn = card.querySelector('.stage-btn');
+                    stageBtn.addEventListener('click', () => openStage(card, stageBtn, d, i + 1));
 
                     const play = card.querySelector('.play-btn');
                     if (play) {
