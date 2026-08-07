@@ -1,0 +1,15 @@
+; spritify.py target palette.
+; These are the ONLY colors allowed in the output sprites.
+; Every opaque pixel is snapped to the nearest entry below, so the model's
+; invented near-miss colors never reach the website.
+; One hex color per line. Lines starting with ';' or '//' are comments,
+; and so is any '#' line that is not a valid hex color.
+
+#0C0A0F
+#16121C
+#2E2540
+#E8E4F0
+#9A90AE
+#FFD447
+#FF4D6D
+#5EE6A8
