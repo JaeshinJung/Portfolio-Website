@@ -23,7 +23,10 @@
 
         <!-- HUD — avatar + name + tagline on one compact row -->
         <div class="hud">
-            <img src="assets/avatar.png" alt="Jaeshin Jung — pixel avatar" class="hud-avatar" id="home-img">
+            <picture>
+                <source srcset="assets/avatar.webp" type="image/webp">
+                <img src="assets/avatar.png" alt="Jaeshin Jung — pixel avatar" class="hud-avatar" id="home-img">
+            </picture>
             <div class="hud-text">
                 <h1 id="home-title">Loading...</h1>
                 <p class="hud-subtitle" id="home-subtitle">Loading...</p>
@@ -103,6 +106,36 @@
             return `assets/${encodeURIComponent(file)}`;
         }
 
+        // Basenames that have a .webp sibling in public/assets. Listed, not
+        // derived: the page cannot stat the directory, and a <source> aimed at
+        // a file that is not there would cost a 404 on every card it renders.
+        // avatar, Console Shooting and IEEE-Tech are lossless WebP — smaller
+        // than both the PNG and a lossy encode; the rest are quality 85, whose
+        // mean error stays under 1/255 in the 362x204 box a card paints.
+        const WEBP_ASSETS = new Set([
+            'avatar.png', 'Console Shooting.png', 'Defusion Confusion.png',
+            'Dungeon Maze.png', 'Eraser Escape.png', 'HorroSchool.png',
+            'IEEE-Tech.png', "Jackson's Boba Beat.png",
+        ]);
+
+        // The local WebP for a GitHub asset URL, or null when there is none.
+        function webpAsset(url) {
+            const file = assetBasename(url);
+            if (!file || !WEBP_ASSETS.has(file)) return null;
+            return `assets/${encodeURIComponent(file.replace(/\.png$/, '.webp'))}`;
+        }
+
+        // A <picture> keeps serving its <source> even after img.src is
+        // reassigned, so an onerror fallback that only rewrote src would
+        // re-select the very WebP that just failed. Dropping the <source>
+        // re-runs selection and leaves the img's own src the sole candidate.
+        function dropWebpSource(img) {
+            const parent = img.parentElement;
+            if (parent && parent.tagName === 'PICTURE') {
+                parent.querySelectorAll('source').forEach(s => s.remove());
+            }
+        }
+
         // siteContent/home.profileImageUrl points at the GitHub copy of
         // assets/avatar.png, which is 5.7 MB — more than all seven screenshots
         // put together — to paint a 56x56 HUD box. The static markup already
@@ -114,11 +147,15 @@
             const img = document.getElementById('home-img');
             const file = assetBasename(url);
             if (!file) {
+                dropWebpSource(img);
                 img.src = url;
                 return;
             }
             const src = `assets/${encodeURIComponent(file)}`;
             if (new URL(src, document.baseURI).href === img.src) return;
+            // Past the early return the file is not the one the markup shipped,
+            // so the static <source> names the wrong picture: drop it.
+            dropWebpSource(img);
             // Degrade to the URL Firestore holds if the local file is missing.
             // { once: true }, so a fallback that also fails cannot loop.
             img.addEventListener('error', () => { img.src = url; }, { once: true });
@@ -301,10 +338,22 @@
                 hole.className = 'boss-hole';
                 const shot = document.createElement('img');
                 const local = localAsset(d.imageUrl);
-                shot.src = local || d.imageUrl;
-                if (local) shot.addEventListener('error', () => { shot.src = d.imageUrl; }, { once: true });
+                const webp = local ? webpAsset(d.imageUrl) : null;
                 shot.alt = `${title} — screenshot`;
-                hole.appendChild(shot);
+                if (local) shot.addEventListener('error', () => { dropWebpSource(shot); shot.src = d.imageUrl; }, { once: true });
+                if (webp) {
+                    // Source first, src last: setting src re-runs <picture>
+                    // selection, so the WebP is the only file ever requested.
+                    const pic = document.createElement('picture');
+                    const source = document.createElement('source');
+                    source.srcset = webp;
+                    source.type = 'image/webp';
+                    pic.append(source, shot);
+                    hole.appendChild(pic);
+                } else {
+                    hole.appendChild(shot);
+                }
+                shot.src = local || d.imageUrl;
                 boss.appendChild(hole);
             }
             const art = document.createElement('img');
@@ -423,7 +472,13 @@
                     let imgTag = '';
                     if (d.imageUrl) {
                         const src = local || d.imageUrl;
-                        imgTag = `<img src="${escapeHtml(src)}" alt="${title}" ${loadAttrs}>`;
+                        const tag = `<img src="${escapeHtml(src)}" alt="${title}" ${loadAttrs}>`;
+                        // No WebP sibling means no <source> at all: pointing at
+                        // a file that is not there would only buy a 404.
+                        const webp = local ? webpAsset(d.imageUrl) : null;
+                        imgTag = webp
+                            ? `<picture><source srcset="${escapeHtml(webp)}" type="image/webp">${tag}</picture>`
+                            : tag;
                     }
 
                     const demoBtn = d.demoUrl
@@ -464,7 +519,7 @@
                     // also fails cannot loop.
                     if (local) {
                         const img = card.querySelector('img');
-                        img.addEventListener('error', () => { img.src = d.imageUrl; }, { once: true });
+                        img.addEventListener('error', () => { dropWebpSource(img); img.src = d.imageUrl; }, { once: true });
                     }
 
                     // The description is clamped to 3 lines in CSS, so keep the

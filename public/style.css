@@ -63,6 +63,22 @@ html {
   scroll-behavior: smooth;
 }
 
+/* A <picture> is a format switch, not a box: the <img> inside it is the box
+   every rule below already sizes. display: contents drops the wrapper out of
+   layout, so the img stays a direct flex/grid item of whatever holds it and
+   adding a WebP <source> changes no measured height by a pixel. */
+picture {
+  display: contents;
+}
+
+/* display: contents also promotes <source> to a child of the picture's parent,
+   where it becomes a flex item in its own right: zero-wide, but still claiming
+   a gap. That cost .hud 16px of text width and wrapped the tagline onto a
+   second line. A <source> is metadata, never a box — take it out of layout. */
+picture > source {
+  display: none;
+}
+
 body {
   font-family: var(--font-body);
   font-size: 15px;
@@ -411,8 +427,10 @@ h2::after {
 /* Direct child only. This rule describes the card's own screenshot box, and
    the stage interior below nests images of its own — a 196x132 boss frame and
    68px entity sprites — which must not inherit a 16:9 ratio, an 18px gutter
-   and a border. */
-.project-card > img {
+   and a border. The <picture> arm is the same depth: display: contents above
+   means the wrapper is not in layout, only in the selector path. */
+.project-card > img,
+.project-card > picture > img {
   width: 100%;
   /* Keeps height indefinite so aspect-ratio below always wins. A width/height
      attribute pair on the tag would otherwise become a presentational hint, and
@@ -621,6 +639,7 @@ h2::after {
    is inside the boss frame, the description is unclamped, and every action
    has an entity. Direct children only — the stage's own <p> is deeper. */
 .project-card.is-stage > img,
+.project-card.is-stage > picture,
 .project-card.is-stage > p,
 .project-card.is-stage > .project-card-actions {
   display: none;
