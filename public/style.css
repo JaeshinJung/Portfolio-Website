@@ -398,9 +398,18 @@ h2::after {
    0.95W - 64 >= 280*4 + 28*3 solves to W >= 1334.7 — which shrinks every
    screenshot from 382px to 280px wide. The screenshots *are* the content of a
    stage-select grid, so three large stages beat four small ones. Accepted
-   consequence: the page is taller at 1440 than at 1024. That is not a bug. */
+   consequence: the page is taller at 1440 than at 1024. That is not a bug.
+
+   minmax(0, 1fr), not the bare 1fr: `1fr` is shorthand for minmax(auto, 1fr),
+   whose *minimum* is the track's min-content, so one unbreakable token in a
+   card summary — clamped out of sight, but still measured — inflated each
+   track to 3837.67px and pushed the whole grid sideways. A 0 minimum lets 1fr
+   share the row as intended. This is NOT a change to the decision above: the
+   count is still 3 and the track still computes 416px at 1440 with real
+   content, so it is a no-op for real data and only caps the pathological case.
+   Do not read it as a "fix" for the 1024-vs-1440 height. */
 @media (min-width: 1335px) {
-  .project-grid { grid-template-columns: repeat(3, 1fr); }
+  .project-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
 /* Stage card. The frame is CSS-only for now — a 2px token border. A pixel
@@ -767,16 +776,25 @@ h2::after {
 
 /* The whole description, never clamped. .project-card p clamps the card's
    summary to 3 lines precisely because there was nowhere else to read it —
-   this is that somewhere, so the clamp is undone here and only here. */
-.stage-desc {
+   this is that somewhere, so the clamp is undone here and only here. The
+   disclosure panels are the same box, opened one at a time by their own
+   entity, so they share the rule rather than restate it. */
+.stage-desc,
+.stage-panel {
   max-width: 640px;
   margin: 22px auto 0;
   background: var(--bg);
   padding: 18px 22px;
   border: 2px solid var(--line);
+  /* Every string in here is hand-authored, so one long unbroken token — a URL,
+     a stack trace, a typo — used to push the whole document sideways instead of
+     wrapping: +3796px of horizontal scroll at 360px. Breaking mid-token is the
+     lesser evil, and there is nothing else in the stylesheet that wraps it. */
+  overflow-wrap: anywhere;
 }
 
-.stage-desc p {
+.stage-desc p,
+.stage-panel p {
   display: block;
   -webkit-line-clamp: none;
   line-clamp: none;
