@@ -306,6 +306,18 @@
             return el;
         }
 
+        // One <li> per entry, as textContent: every string here is authored by
+        // hand in Firestore and nothing about it is derived from the repo.
+        function bulletList(items) {
+            const ul = document.createElement('ul');
+            items.forEach(item => {
+                const li = document.createElement('li');
+                li.textContent = item;
+                ul.appendChild(li);
+            });
+            return ul;
+        }
+
         // Built with DOM APIs, not a template: escapeHtml() does not escape
         // quotes, and a title, a URL and a description all land on attributes
         // here. `n` is the card's position in the grid, so the heading names
@@ -384,6 +396,71 @@
                 entities.appendChild(read);
             }
 
+            // Tech Stack, Role and Learned each hide behind their own entity.
+            // One panel is open at a time: three boxes at once would push the
+            // close button off a phone screen, and the row is a menu, not a
+            // dump. Fields the document does not carry produce no entity, no
+            // panel and no sprite request at all.
+            const panels = document.createElement('div');
+            panels.className = 'stage-panels';
+            const toggles = []; // every [button, panel] pair built below
+
+            function closePanels() {
+                toggles.forEach(([b, p]) => {
+                    p.hidden = true;
+                    b.setAttribute('aria-expanded', 'false');
+                });
+            }
+
+            // `key` only names the panel's id; ids are per-card because `n` is,
+            // even though one open stage site-wide already guarantees it. `cls`
+            // is an extra class for a panel that needs more than the shared box.
+            function disclosure(sprite, label, key, content, cls) {
+                const panel = document.createElement('div');
+                panel.className = cls ? `stage-panel ${cls}` : 'stage-panel';
+                panel.id = `stage-panel-${key}-${n}`;
+                panel.hidden = true;
+                panel.tabIndex = -1;
+                panel.setAttribute('role', 'group');
+                panel.setAttribute('aria-label', `${title} — ${label}`);
+                panel.appendChild(content);
+
+                const toggle = entity('button', sprite, label);
+                toggle.setAttribute('aria-expanded', 'false');
+                toggle.setAttribute('aria-controls', panel.id);
+                toggle.addEventListener('click', () => {
+                    // Read before closing: hidden here means this click opens.
+                    const opening = panel.hidden;
+                    closePanels();
+                    if (opening) {
+                        panel.hidden = false;
+                        toggle.setAttribute('aria-expanded', 'true');
+                        panel.focus();
+                    }
+                });
+
+                toggles.push([toggle, panel]);
+                entities.appendChild(toggle);
+                panels.appendChild(panel);
+            }
+
+            if (Array.isArray(d.stack) && d.stack.length > 0) {
+                disclosure('entity-stack', 'Tech Stack', 'stack', bulletList(d.stack));
+            }
+
+            // .stage-prose, so the paragraph breaks someone typed into the
+            // textarea survive as paragraph breaks. Role only: the description
+            // is the same box but keeps rendering as one flowing paragraph.
+            if (typeof d.role === 'string' && d.role.trim()) {
+                const prose = document.createElement('p');
+                prose.textContent = d.role;
+                disclosure('entity-role', 'Role', 'role', prose, 'stage-prose');
+            }
+
+            if (Array.isArray(d.learned) && d.learned.length > 0) {
+                disclosure('entity-learned', 'Learned', 'learned', bulletList(d.learned));
+            }
+
             // Hands off to the card's own Play button so closeGame() restores
             // focus to a control that still exists: this stage is gone by then.
             const play = card.querySelector('.play-btn');
@@ -414,6 +491,8 @@
 
             stage.append(heading, boss, entities);
             if (d.description) stage.appendChild(desc);
+            // No disclosure means no container: an empty box is still a box.
+            if (toggles.length) stage.appendChild(panels);
             stage.appendChild(close);
 
             card.appendChild(stage);

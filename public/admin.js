@@ -91,6 +91,9 @@ const projRepo = document.getElementById('proj-repo');
 const projDemo = document.getElementById('proj-demo');
 const projPlay = document.getElementById('proj-play');
 const projDesc = document.getElementById('proj-desc');
+const projStack = document.getElementById('proj-stack');
+const projRole = document.getElementById('proj-role');
+const projLearned = document.getElementById('proj-learned');
 const projOrder = document.getElementById('proj-order');
 const projEditId = document.getElementById('project-edit-id');
 const projFormTitle = document.getElementById('project-form-title');
@@ -197,6 +200,9 @@ async function loadProjects() {
             projDemo.value = d.demoUrl || '';
             projPlay.value = d.playUrl || '';
             projDesc.value = d.description || '';
+            projStack.value = (d.stack || []).join('\n');
+            projRole.value = d.role || '';
+            projLearned.value = (d.learned || []).join('\n');
             projOrder.value = d.order ?? 0;
 
             // Populate public/private repo fields
@@ -230,6 +236,9 @@ projSaveBtn.addEventListener('click', async () => {
         demoUrl: projDemo.value.trim(),
         playUrl: play.url,
         description: projDesc.value.trim(),
+        stack: projStack.value.split('\n').map(s => s.trim()).filter(Boolean),
+        role: projRole.value.trim(),
+        learned: projLearned.value.split('\n').map(s => s.trim()).filter(Boolean),
         order: parseInt(projOrder.value) || 0,
         isRepoPublic: projIsPublic.checked,
         privateMessage: projPrivateMsg.value.trim()
@@ -262,6 +271,9 @@ function resetProjectForm() {
     projDemo.value = '';
     projPlay.value = '';
     projDesc.value = '';
+    projStack.value = '';
+    projRole.value = '';
+    projLearned.value = '';
     projOrder.value = '0';
     projIsPublic.checked = true;
     projPrivateMsg.value = 'Due to security regulations, the code is kept confidential.';

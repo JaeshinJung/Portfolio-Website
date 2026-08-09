@@ -755,6 +755,17 @@ h2::after {
   border-color: var(--line-strong);
 }
 
+/* The open toggle, so the panel below is visibly tied to the creature that
+   opened it — aria-expanded already says so, this says it to the eye. An accent
+   border, not the resting --line-strong one hover uses, so open, hovered and
+   resting are three distinguishable states; last of the two rules on purpose,
+   so hovering an open toggle does not look like it just closed. Costs no
+   pixels: .entity already reserves 2px of transparent border. */
+.entity[aria-expanded="true"] {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
 /* The one animation this site adds. 6px peak to peak over 3.2s, on the sprite
    and not on the button, so the focus ring never moves with it. */
 .entity img {
@@ -801,6 +812,28 @@ h2::after {
   overflow: visible;
   font-size: 14px;
   color: var(--text);
+}
+
+/* Role is authored as prose in a textarea, so a paragraph break someone typed
+   is content and not whitespace noise. pre-line keeps the newlines while still
+   collapsing runs of spaces and still wrapping, so it composes with the
+   overflow-wrap above. Role alone: the description shares the rule above and
+   goes on rendering as one flowing paragraph. */
+.stage-prose p {
+  white-space: pre-line;
+}
+
+/* The global reset zeroes every padding, which would leave these markers
+   hanging outside the panel's own box, so the indent is put back here. */
+.stage-panel ul {
+  list-style: square;
+  padding-left: 22px;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.stage-panel li + li {
+  margin-top: 6px;
 }
 
 .stage-close {
