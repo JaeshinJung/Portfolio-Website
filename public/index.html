@@ -34,8 +34,19 @@
         </div>
 
         <h2>Select Stage</h2>
-        <div class="project-grid" id="project-list">
-            <p class="loading-text" style="grid-column: 1 / -1;">Loading data...</p>
+        <div class="ds-console">
+            <div class="ds-screen ds-screen-top">
+                <div class="ds-preview" id="ds-preview">
+                    <p class="preview-hint">Select a cartridge below.</p>
+                </div>
+            </div>
+            <div class="ds-hinge" aria-hidden="true"></div>
+            <div class="ds-screen ds-screen-bottom">
+                <div class="ds-cartridge-list" id="ds-cartridge-list">
+                    <p class="loading-text">Loading data...</p>
+                </div>
+                <div class="ds-slot" id="ds-slot" hidden></div>
+            </div>
         </div>
 
         <hr class="section-divider">
@@ -73,7 +84,9 @@
         import { escapeHtml } from './utils.js';
         import { collection, getDocs, getDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        const container = document.getElementById('project-list');
+        const list = document.getElementById('ds-cartridge-list');
+        const slot = document.getElementById('ds-slot');
+        const preview = document.getElementById('ds-preview');
 
         // Firestore stores every screenshot as an absolute GitHub blob URL even
         // though the identical file already ships in public/assets/. Rewriting to
@@ -97,9 +110,9 @@
         }
 
         // The local path for a GitHub asset URL, or null if it is not one. No
-        // width/height hint goes with it: .project-card img already carries
-        // aspect-ratio: 16/9, which reserves the box on its own, so measured
-        // page height is byte-identical with and without the attributes.
+        // width/height hint goes with it: the screenshot's box is already
+        // reserved by .boss-hole's own percentage geometry, so measured page
+        // height is byte-identical with and without the attributes.
         function localAsset(url) {
             const file = assetBasename(url);
             if (!file) return null;
@@ -123,6 +136,28 @@
             const file = assetBasename(url);
             if (!file || !WEBP_ASSETS.has(file)) return null;
             return `assets/${encodeURIComponent(file.replace(/\.png$/, '.webp'))}`;
+        }
+
+        // Cartridge shell colors, keyed on the same basename assetBasename()
+        // already extracts — never on the title, for the identical reason
+        // assetBasename exists: Firestore's title strings do not match the
+        // repo's filenames ('Horror School' vs. HorroSchool.png). No entry
+        // (or a URL assetBasename can't parse) falls back to --surface in CSS.
+        const CARTRIDGE_COLORS = {
+            'Defusion Confusion.png': { body: '#700808' },
+            'Dungeon Maze.png': { body: '#5EE6A8' },
+            'Console Shooting.png': { body: '#101010', trim: '#D01010' },
+            'HorroSchool.png': { body: '#2A2620', trim: '#C9B38B' },
+            'Eraser Escape.png': { body: '#8C7F5A', trim: '#706C5E' },
+            "Jackson's Boba Beat.png": { body: '#5090F0' },
+            'IEEE-Tech.png': { body: '#107090' },
+        };
+
+        // The color pair for a project's screenshot URL, or null when the URL
+        // isn't a recognised GitHub asset blob or has no entry above.
+        function cartridgeColor(url) {
+            const file = url ? assetBasename(url) : null;
+            return (file && CARTRIDGE_COLORS[file]) || null;
         }
 
         // A <picture> keeps serving its <source> even after img.src is
@@ -204,18 +239,16 @@
             }
         }
 
-        // The one live embed, if any: { card, embed, btn }.
+        // The one live embed, if any: { embed, btn }.
         let liveGame = null;
 
-        // The one open stage, if any: { card, stage, btn }. A stage and an
-        // embed both expand their card to the full row, so two open at once
-        // means two cards fighting over the grid. Never more than one of
-        // either, site-wide.
-        let liveStage = null;
+        // The one inserted cartridge, if any: { btn }. Only one cartridge can
+        // be in the slot at a time, site-wide.
+        let liveCartridge = null;
 
         function closeGame(restoreFocus) {
             if (!liveGame) return;
-            const { card, embed, btn } = liveGame;
+            const { embed, btn } = liveGame;
             liveGame = null;
             // about:blank BEFORE removal: that navigates the frame away and
             // discards the loaded document with its wasm heap while the element
@@ -224,23 +257,12 @@
             const frame = embed.querySelector('iframe');
             if (frame) frame.src = 'about:blank';
             embed.remove();
-            card.classList.remove('is-playing');
             btn.hidden = false;
             if (restoreFocus) btn.focus();
         }
 
-        function closeStage(restoreFocus) {
-            if (!liveStage) return;
-            const { card, stage, btn } = liveStage;
-            liveStage = null;
-            stage.remove();
-            card.classList.remove('is-stage');
-            if (restoreFocus) btn.focus();
-        }
-
-        function openGame(card, btn, url, title) {
+        function openGame(container, btn, url, title) {
             closeGame(false); // one at a time
-            closeStage(false); // and never beside an open stage
 
             const embed = document.createElement('div');
             embed.className = 'game-embed';
@@ -275,10 +297,9 @@
             close.addEventListener('click', () => closeGame(true));
 
             embed.append(frameBox, close);
-            card.appendChild(embed);
-            card.classList.add('is-playing');
+            container.appendChild(embed);
             btn.hidden = true;
-            liveGame = { card, embed, btn };
+            liveGame = { embed, btn };
             embed.focus();
         }
 
@@ -318,31 +339,15 @@
             return ul;
         }
 
-        // Built with DOM APIs, not a template: escapeHtml() does not escape
-        // quotes, and a title, a URL and a description all land on attributes
-        // here. `n` is the card's position in the grid, so the heading names
-        // the stage the way the grid above it does.
-        function openStage(card, btn, d, n) {
-            closeGame(false);  // one panel at a time, either kind
-            closeStage(false);
-
+        // The top screen: always visible, no click required. Replaces
+        // #ds-preview's content with the hovered/focused cartridge's
+        // screenshot, title and description — a light DOM swap, never the
+        // heavier entities/panels the bottom screen builds on insert.
+        function previewCartridge(d) {
             const title = d.title || 'Untitled';
 
-            const stage = document.createElement('div');
-            stage.className = 'stage';
-            stage.tabIndex = -1;
-            stage.setAttribute('role', 'group');
-            stage.setAttribute('aria-label', `${title} — stage`);
-
-            const heading = document.createElement('h4');
-            heading.className = 'stage-title';
-            heading.textContent = `Stage ${n} — ${title}`;
-
             // The screenshot goes BEHIND the frame's transparent hole, which
-            // is off-centre; .boss-hole holds the geometry. It is a second
-            // <img> element rather than the card's own moved into place — the
-            // card's is display: none while the stage is open, and the browser
-            // serves the second one from cache.
+            // is off-centre; .boss-hole holds the geometry.
             const boss = document.createElement('div');
             boss.className = 'boss';
             if (d.imageUrl) {
@@ -376,25 +381,58 @@
             art.height = 132;
             boss.appendChild(art);
 
-            // Always present and never behind a click: the entity below only
-            // moves focus here, it does not reveal anything.
-            const desc = document.createElement('div');
-            desc.className = 'stage-desc';
-            desc.tabIndex = -1;
-            desc.setAttribute('role', 'group');
-            desc.setAttribute('aria-label', `${title} — description`);
-            const body = document.createElement('p');
-            body.textContent = d.description || '';
-            desc.appendChild(body);
+            const heading = document.createElement('h3');
+            heading.className = 'preview-title';
+            heading.textContent = title;
+
+            preview.innerHTML = '';
+            preview.append(boss, heading);
+
+            // Reuses .stage-desc: the whole, never-clamped description box the
+            // stage interior already had. No entity moves focus here anymore —
+            // this screen has nothing to click, it is just always visible.
+            if (d.description) {
+                const desc = document.createElement('div');
+                desc.className = 'stage-desc';
+                const body = document.createElement('p');
+                body.textContent = d.description;
+                desc.appendChild(body);
+                preview.appendChild(desc);
+            }
+        }
+
+        // Empties and hides the bottom screen's slot, shows the cartridge
+        // list again and hands focus back to the cartridge that was inserted.
+        function ejectCartridge(restoreFocus) {
+            if (!liveCartridge) return;
+            const { btn } = liveCartridge;
+            closeGame(false); // the embed lives inside the slot being cleared
+            liveCartridge = null;
+            slot.hidden = true;
+            slot.classList.remove('is-visible');
+            slot.innerHTML = '';
+            list.hidden = false;
+            if (restoreFocus) btn.focus();
+        }
+
+        // "Plugs in" a cartridge: builds its entities (Tech Stack/Role/
+        // Learned/Play/Repository/Demo Video) and disclosure panels into
+        // #ds-slot and swaps it in for the cartridge list. The screenshot and
+        // description are not rebuilt here — the top screen already shows
+        // them. `n` only names disclosure panel ids uniquely per cartridge.
+        function insertCartridge(d, btn, n) {
+            ejectCartridge(false); // never more than one cartridge inserted
+
+            const title = d.title || 'Untitled';
+
+            const slotContent = document.createElement('div');
+            slotContent.className = 'cartridge-content';
+            slotContent.tabIndex = -1;
+            slotContent.setAttribute('role', 'group');
+            slotContent.setAttribute('aria-label', `${title} — controls`);
 
             const entities = document.createElement('div');
             entities.className = 'entities';
-
-            if (d.description) {
-                const read = entity('button', 'entity-highlights', 'Description');
-                read.addEventListener('click', () => desc.focus());
-                entities.appendChild(read);
-            }
 
             // Tech Stack, Role and Learned each hide behind their own entity.
             // One panel is open at a time: three boxes at once would push the
@@ -461,12 +499,11 @@
                 disclosure('entity-learned', 'Learned', 'learned', bulletList(d.learned));
             }
 
-            // Hands off to the card's own Play button so closeGame() restores
-            // focus to a control that still exists: this stage is gone by then.
-            const play = card.querySelector('.play-btn');
-            if (play) {
+            // Play has nowhere else to live now that the card grid is gone:
+            // the entity itself is the button openGame() hides/restores.
+            if (d.playUrl && canPlay) {
                 const enter = entity('button', null, 'Play');
-                enter.addEventListener('click', () => openGame(card, play, d.playUrl, title));
+                enter.addEventListener('click', () => openGame(slotContent, enter, d.playUrl, title));
                 entities.appendChild(enter);
             }
 
@@ -483,30 +520,38 @@
                 entities.appendChild(demo);
             }
 
-            const close = document.createElement('button');
-            close.type = 'button';
-            close.className = 'pixel-btn secondary btn-sm stage-close';
-            close.textContent = 'Close Stage';
-            close.addEventListener('click', () => closeStage(true));
+            const eject = document.createElement('button');
+            eject.type = 'button';
+            eject.className = 'pixel-btn secondary btn-sm cartridge-eject';
+            eject.textContent = 'Eject';
+            eject.addEventListener('click', () => ejectCartridge(true));
 
-            stage.append(heading, boss, entities);
-            if (d.description) stage.appendChild(desc);
+            slotContent.appendChild(entities);
             // No disclosure means no container: an empty box is still a box.
-            if (toggles.length) stage.appendChild(panels);
-            stage.appendChild(close);
+            if (toggles.length) slotContent.appendChild(panels);
+            slotContent.appendChild(eject);
 
-            card.appendChild(stage);
-            card.classList.add('is-stage');
-            liveStage = { card, stage, btn };
-            stage.focus();
+            slot.innerHTML = '';
+            slot.appendChild(slotContent);
+            slot.hidden = false;
+            list.hidden = true;
+            // Reflow between removing and re-adding the class, so the browser
+            // re-applies the "just inserted" starting state before transitioning
+            // out of it — without this the insert never animates.
+            slot.classList.remove('is-visible');
+            void slot.offsetWidth;
+            slot.classList.add('is-visible');
+
+            liveCartridge = { btn };
+            slotContent.focus();
         }
 
         document.addEventListener('keydown', e => {
             if (e.key !== 'Escape') return;
-            // At most one of the two is open, so this closes exactly one panel
-            // and hands focus back to whatever opened it.
+            // Closes the embed first, then the cartridge itself, so the
+            // preview stays put and only the bottom screen returns to the list.
             closeGame(true);
-            closeStage(true);
+            ejectCartridge(true);
         });
 
         async function loadProjects() {
@@ -514,7 +559,7 @@
                 const snapshot = await getDocs(collection(db, 'projects'));
 
                 if (snapshot.empty) {
-                    container.innerHTML = '<p class="empty-state" style="grid-column:1/-1;">No projects yet. Add entries from the admin panel.</p>';
+                    list.innerHTML = '<p class="empty-state">No projects yet. Add entries from the admin panel.</p>';
                     return;
                 }
 
@@ -533,104 +578,45 @@
                     return 0;
                 });
 
-                container.innerHTML = '';
+                list.innerHTML = '';
                 projects.forEach((d, i) => {
-                    const card = document.createElement('div');
-                    card.className = 'project-card';
-
-                    const isPublic = d.isRepoPublic !== false; // backward compat
+                    const n = i + 1;
                     const title = escapeHtml(d.title || 'Untitled');
 
-                    // The first row is above the fold: lazy-loading it would only
-                    // delay it. Everything after row 1 loads lazily.
-                    const loadAttrs = i < 3
-                        ? 'loading="eager" fetchpriority="high"'
-                        : 'loading="lazy" decoding="async"';
-
-                    const local = d.imageUrl ? localAsset(d.imageUrl) : null;
-                    let imgTag = '';
-                    if (d.imageUrl) {
-                        const src = local || d.imageUrl;
-                        const tag = `<img src="${escapeHtml(src)}" alt="${title}" ${loadAttrs}>`;
-                        // No WebP sibling means no <source> at all: pointing at
-                        // a file that is not there would only buy a 404.
-                        const webp = local ? webpAsset(d.imageUrl) : null;
-                        imgTag = webp
-                            ? `<picture><source srcset="${escapeHtml(webp)}" type="image/webp">${tag}</picture>`
-                            : tag;
-                    }
-
-                    const demoBtn = d.demoUrl
-                        ? `<a href="${escapeHtml(d.demoUrl)}" class="video-btn" target="_blank">&#9654; View Demo</a>`
+                    // Body/trim hex, or no inline style at all — the shell then
+                    // falls back to CSS's own --surface/--line-strong default.
+                    const color = d.imageUrl ? cartridgeColor(d.imageUrl) : null;
+                    const shellStyle = color
+                        ? `background:${color.body};${color.trim ? `border-color:${color.trim};` : ''}`
                         : '';
 
-                    // playUrl comes off the document, never a hardcoded map. No
-                    // playUrl means no control at all: no disabled button, no
-                    // placeholder. Where the pointer is coarse the demo video
-                    // stays the path, so only a note goes here.
-                    let playBtn = '';
-                    if (d.playUrl) {
-                        playBtn = canPlay
-                            ? '<button type="button" class="pixel-btn play-btn">Play</button>'
-                            : '<p class="play-note">Play on desktop</p>';
-                    }
-
-                    // Playing is the primary action, so Repository steps down to
-                    // .secondary — but only on a card that actually offers it, so
-                    // a card without playUrl looks exactly as it did before.
-                    const repoClass = d.playUrl && canPlay
-                        ? 'pixel-btn secondary repo-btn'
-                        : 'pixel-btn repo-btn';
-
-                    card.innerHTML = `
-                        ${imgTag}
-                        <h3><button type="button" class="stage-btn">${title}</button></h3>
-                        <p>${escapeHtml(d.description || '')}</p>
-                        <div class="project-card-actions">
-                            ${playBtn}
-                            <button class="${repoClass}" data-repo-public="${isPublic}" data-repo-url="${escapeHtml(d.repoUrl || '')}" data-private-msg="${escapeHtml(d.privateMessage || '')}">Repository</button>
-                            ${demoBtn}
-                        </div>
+                    // The button's text content — the label span, nothing in the
+                    // aria-hidden shell — is its whole accessible name. Color
+                    // never touches the label, so there is no contrast to check.
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'cartridge';
+                    btn.innerHTML = `
+                        <span class="cartridge-shell" aria-hidden="true" style="${shellStyle}"></span>
+                        <span class="cartridge-label">${title}</span>
                     `;
 
-                    // If the local file is ever renamed or missing, degrade to the
-                    // URL Firestore holds. { once: true }, so a fallback that
-                    // also fails cannot loop.
-                    if (local) {
-                        const img = card.querySelector('img');
-                        img.addEventListener('error', () => { dropWebpSource(img); img.src = d.imageUrl; }, { once: true });
-                    }
-
-                    // The description is clamped to 3 lines in CSS, so keep the
-                    // full text reachable on hover. Set as a property, not in the
-                    // template: escapeHtml() does not escape quotes.
-                    card.querySelector('p').title = d.description || '';
-
-                    // Attach click handler to the Repository button
-                    const repoBtn = card.querySelector('.repo-btn');
-                    repoBtn.addEventListener('click', () => {
-                        repoAction(repoBtn.dataset.repoPublic === 'true', repoBtn.dataset.repoUrl, repoBtn.dataset.privateMsg);
+                    // focus/mouseenter drive the top screen with no click
+                    // required; click also plugs the cartridge into the bottom
+                    // screen. previewCartridge() is called again on click
+                    // because Safari does not focus a <button> on click.
+                    btn.addEventListener('mouseenter', () => previewCartridge(d));
+                    btn.addEventListener('focus', () => previewCartridge(d));
+                    btn.addEventListener('click', () => {
+                        previewCartridge(d);
+                        insertCartridge(d, btn, n);
                     });
 
-                    // The heading is the way in. Its visible text is the whole
-                    // accessible name — no aria-label, which would only repeat
-                    // it — and 'Enter stage' is what the region it opens is
-                    // called, announced on arrival.
-                    const stageBtn = card.querySelector('.stage-btn');
-                    stageBtn.addEventListener('click', () => openStage(card, stageBtn, d, i + 1));
-
-                    const play = card.querySelector('.play-btn');
-                    if (play) {
-                        play.addEventListener('click', () => {
-                            openGame(card, play, d.playUrl, d.title || 'Untitled');
-                        });
-                    }
-
-                    container.appendChild(card);
+                    list.appendChild(btn);
                 });
             } catch (err) {
                 console.error('Firestore error:', err);
-                container.innerHTML = '<p class="empty-state" style="grid-column:1/-1;">Failed to load projects.</p>';
+                list.innerHTML = '<p class="empty-state">Failed to load projects.</p>';
             }
         }
 
