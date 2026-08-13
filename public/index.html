@@ -11,14 +11,6 @@
 </head>
 
 <body>
-    <nav>
-        <ul>
-            <li><a href="index.html" class="active">Home</a></li>
-            <li><a href="index.html#experience">Experience</a></li>
-            <li><a href="index.html#skills">Skills</a></li>
-        </ul>
-    </nav>
-
     <div class="container">
 
         <!-- HUD — avatar + name + tagline on one compact row. Always visible,
@@ -34,15 +26,30 @@
             </div>
         </div>
 
-        <!-- DS home menu: the hash-less landing screen. Four real links, so
-             hash navigation and keyboard focus work with no click handlers. -->
+        <!-- DS home menu: the hash-less landing screen, inside the same
+             dual-screen console frame as Projects. Four real links, so hash
+             navigation and keyboard focus work with no click handlers. -->
         <div id="app-home" class="app-screen">
             <h2>Select App</h2>
-            <div class="ds-menu-list">
-                <a href="#projects" class="ds-menu-icon">Projects</a>
-                <a href="#experience" class="ds-menu-icon">Experience</a>
-                <a href="#skills" class="ds-menu-icon">Skills</a>
-                <a href="#about" class="ds-menu-icon">About Me</a>
+            <div class="ds-console">
+                <div class="ds-screen ds-screen-top">
+                    <div class="ds-preview" id="home-preview">
+                        <p class="preview-hint">Select an app below.</p>
+                    </div>
+                </div>
+                <div class="ds-hinge" aria-hidden="true"></div>
+                <div class="ds-screen ds-screen-bottom">
+                    <div class="ds-menu-list">
+                        <a href="#projects" class="ds-menu-icon"
+                            data-preview-desc="Seven playable game dev projects — browser demos, source links, and what I learned building each one.">Projects</a>
+                        <a href="#experience" class="ds-menu-icon"
+                            data-preview-desc="Work history and internships — the role, responsibilities, and results from each one.">Experience</a>
+                        <a href="#skills" class="ds-menu-icon"
+                            data-preview-desc="Technical skills by category, plus honors and awards.">Skills</a>
+                        <a href="#about" class="ds-menu-icon"
+                            data-preview-desc="Who I am, outside the project list.">About Me</a>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -806,6 +813,33 @@
                 skillsContainer.innerHTML = '<p>Error loading skills data.</p>';
             }
         }
+
+        // ---- Home menu: the console's top screen previews whichever app
+        // icon is hovered/focused, same "no click required" pattern as
+        // previewCartridge() above but for the four home menu links. ----
+        const homePreview = document.getElementById('home-preview');
+
+        function previewApp(title, desc) {
+            const heading = document.createElement('h3');
+            heading.className = 'preview-title';
+            heading.textContent = title;
+
+            const descBox = document.createElement('div');
+            descBox.className = 'stage-desc';
+            const body = document.createElement('p');
+            body.textContent = desc;
+            descBox.appendChild(body);
+
+            homePreview.innerHTML = '';
+            homePreview.append(heading, descBox);
+        }
+
+        document.querySelectorAll('#app-home .ds-menu-icon').forEach(a => {
+            const title = a.textContent.trim();
+            const desc = a.dataset.previewDesc;
+            a.addEventListener('mouseenter', () => previewApp(title, desc));
+            a.addEventListener('focus', () => previewApp(title, desc));
+        });
 
         // ---- Hash router: 4 named routes, or none (the DS home menu). ----
         const routes = ['projects', 'experience', 'skills', 'about'];
