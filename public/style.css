@@ -26,6 +26,15 @@
      1.4.11 does not apply. */
   --line-control: #6E5D9A;
 
+  /* Console frame — navy, distinct from the dungeon-stone surfaces above.
+     Used only by .ds-console/.ds-screen/.ds-hinge, never by content boxes
+     (.card, .skill-level-card, cartridge body colors, etc.). Contrast
+     against --text and --accent verified >4.5:1 — see the console-frame
+     recoloring changeset for the measured ratios. */
+  --console-bg:          #0B1F33;
+  --console-line:        #1E3A5A;
+  --console-line-strong: #2C4F73;
+
   /* Text */
   --text:        #E8E4F0;
   --text-dim:    #9A90AE;
@@ -254,6 +263,53 @@ h2::after {
 }
 
 /* ============================================================
+   HOME MENU — APP SELECT
+   The hash-less landing screen: four app icons (Projects/Experience/
+   Skills/About Me), each a real <a href="#..."> so hash navigation and
+   keyboard focus need no JS beyond the router that shows/hides screens.
+   ============================================================ */
+.ds-menu-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 24px;
+}
+
+.ds-menu-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 140px;
+  padding: 24px 12px;
+  background: var(--surface);
+  border: 2px solid var(--line);
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color var(--transition-speed), transform var(--transition-speed);
+}
+
+.ds-menu-icon:hover,
+.ds-menu-icon:focus-visible {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+/* Explicit return-to-home-menu control on every non-home app screen. Never
+   a substitute for Escape, which keeps its existing meaning (close embed,
+   then eject cartridge) untouched. */
+.app-back {
+  margin-bottom: 24px;
+}
+
+/* ============================================================
    HOME — ABOUT (below the grid: work first, person second)
    ============================================================ */
 .section-divider {
@@ -392,8 +448,8 @@ h2::after {
 }
 
 .ds-screen {
-  background: var(--bg);
-  border: 2px solid var(--line-strong);
+  background: var(--console-bg);
+  border: 2px solid var(--console-line-strong);
   padding: 24px;
 }
 
@@ -404,9 +460,9 @@ h2::after {
 /* The gap between the two screens, like a DS's hinge. */
 .ds-hinge {
   height: 14px;
-  background: var(--surface-2);
-  border-left: 2px solid var(--line-strong);
-  border-right: 2px solid var(--line-strong);
+  background: var(--console-line);
+  border-left: 2px solid var(--console-line-strong);
+  border-right: 2px solid var(--console-line-strong);
 }
 
 .preview-hint {

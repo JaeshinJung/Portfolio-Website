@@ -3,117 +3,29 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Technical skills and academic honors of Jaeshin Jung.">
-    <title>Skills & Awards | Jaeshin Jung</title>
-    <link rel="stylesheet" href="style.css">
+    <meta http-equiv="refresh" content="0; url=/#skills">
+    <meta name="robots" content="noindex">
+    <link rel="canonical" href="/#skills">
+    <title>Redirecting to Home | Jaeshin Jung</title>
+    <script>location.replace('/#skills');</script>
+    <style>
+        body {
+            background: #0C0A0F;
+            color: #E8E4F0;
+            font-family: system-ui, sans-serif;
+            padding: 48px 24px;
+            text-align: center;
+        }
+
+        a {
+            color: #FFD447;
+        }
+    </style>
 </head>
 
 <body>
-    <nav>
-        <ul>
-            <li><a href="index.html">Home</a></li>
-            <li><a href="experience.html">Experience</a></li>
-            <li><a href="skills-awards.html" class="active">Skills</a></li>
-        </ul>
-    </nav>
-
-    <div class="container">
-        <section>
-            <h2>Technical Skills</h2>
-            <div id="skills-container">
-                <h3 class="loading-text" style="grid-column: 1 / -1;">Loading Skills Data...</h3>
-            </div>
-        </section>
-
-        <section style="margin-top: 40px;">
-            <h2>Honors & Awards</h2>
-            <ul class="award-list">
-                <li><strong>Dean's Honor Roll</strong> — Texas A&M Engineering (Fall 2025)</li>
-                <li><strong>3rd Place</strong> — 2019 KSEA National Math Competition</li>
-                <li><strong>Junior Leadership Award</strong> — NAKS (2020)</li>
-            </ul>
-        </section>
-    </div>
-
-    <script type="module">
-        import { db } from './firebase-config.js';
-        // Aliased: this file's call sites all read esc(), and renaming them is
-        // churn that has nothing to do with removing the duplicate.
-        import { escapeHtml as esc } from './utils.js';
-        import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-        document.addEventListener('DOMContentLoaded', async () => {
-            const container = document.getElementById('skills-container');
-
-            try {
-                const snap = await getDocs(collection(db, 'skills'));
-
-                if (snap.empty) {
-                    container.innerHTML = '<p>No technical skills entries yet.</p>';
-                } else {
-                    // Sort client-side, not with orderBy(): the same fix the
-                    // stage grid on index.html needed. These four categories do
-                    // currently hold distinct order values, so this is the
-                    // latent case rather than the live one — the tiebreaker
-                    // keeps it deterministic the first time two of them collide.
-                    const skills = snap.docs.map(d => d.data());
-                    skills.sort((a, b) => {
-                        const orderA = Number(a.order) || 0;
-                        const orderB = Number(b.order) || 0;
-                        if (orderA !== orderB) return orderA - orderB;
-                        const catA = a.category || '';
-                        const catB = b.category || '';
-                        if (catA < catB) return -1;
-                        if (catA > catB) return 1;
-                        return 0;
-                    });
-
-                    container.innerHTML = '';
-                    skills.forEach(d => {
-                        const itemsStr = d.items || '';
-                        
-                        // Parse multiline string or fallback to comma-split
-                        let itemsList = [];
-                        if (itemsStr.includes('|') || itemsStr.includes('\n')) {
-                            // modern format: Skill | Description
-                            itemsList = itemsStr.split('\n').map(l => l.trim()).filter(Boolean).map(line => {
-                                const parts = line.split('|');
-                                return {
-                                    name: parts[0] ? parts[0].trim() : '',
-                                    desc: parts.length > 1 ? parts.slice(1).join('|').trim() : ''
-                                };
-                            });
-                        } else {
-                            // legacy comma format
-                            itemsList = itemsStr.split(',').map(s => s.trim()).filter(Boolean).map(name => ({
-                                name: name, desc: ''
-                            }));
-                        }
-
-                        const cardsHtml = itemsList
-                            .map(item => `
-                                <div class="skill-level-card">
-                                    <div class="skill-name">${esc(item.name)}</div>
-                                    ${item.desc ? `<div class="skill-desc">${esc(item.desc)}</div>` : ''}
-                                </div>
-                            `)
-                            .join('');
-
-                        container.innerHTML += `
-                            <div class="level-1-section">
-                                <h2 class="level-1-header">${esc(d.category || 'Untitled')}</h2>
-                                <div class="level-2-grid">${cardsHtml}</div>
-                            </div>
-                        `;
-                    });
-                }
-            } catch (e) {
-                console.error("Error loading skills:", e);
-                container.innerHTML = '<p>Error loading skills data.</p>';
-            }
-        });
-    </script>
+    <p>Skills now lives on the home page.</p>
+    <p><a href="/#skills">Go to Skills</a></p>
 </body>
 
 </html>

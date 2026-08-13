@@ -3,85 +3,29 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description"
-        content="Professional experience of Jaeshin Jung — military leadership and technical roles.">
-    <title>Experience | Jaeshin Jung</title>
-    <link rel="stylesheet" href="style.css">
+    <meta http-equiv="refresh" content="0; url=/#experience">
+    <meta name="robots" content="noindex">
+    <link rel="canonical" href="/#experience">
+    <title>Redirecting to Home | Jaeshin Jung</title>
+    <script>location.replace('/#experience');</script>
+    <style>
+        body {
+            background: #0C0A0F;
+            color: #E8E4F0;
+            font-family: system-ui, sans-serif;
+            padding: 48px 24px;
+            text-align: center;
+        }
+
+        a {
+            color: #FFD447;
+        }
+    </style>
 </head>
 
 <body>
-    <nav>
-        <ul>
-            <li><a href="index.html">Home</a></li>
-            <li><a href="experience.html" class="active">Experience</a></li>
-            <li><a href="skills-awards.html">Skills</a></li>
-        </ul>
-    </nav>
-
-    <div class="container">
-        <h2>Experience</h2>
-        <div id="experience-list">
-            <p class="loading-text">Loading data...</p>
-        </div>
-    </div>
-
-    <script type="module">
-        import { db } from './firebase-config.js';
-        import { escapeHtml } from './utils.js';
-        import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-        const container = document.getElementById('experience-list');
-
-        async function loadExperiences() {
-            try {
-                const snapshot = await getDocs(collection(db, 'experiences'));
-
-                if (snapshot.empty) {
-                    container.innerHTML = '<p class="empty-state">No experience data yet. Add entries from the admin panel.</p>';
-                    return;
-                }
-
-                // Sort client-side, not with orderBy(): both documents carry
-                // order: 0, so ordering on it alone is nondeterministic, and a
-                // second orderBy would need a Firestore composite index. Same
-                // fix as the stage grid on index.html.
-                const experiences = snapshot.docs.map(d => d.data());
-                experiences.sort((a, b) => {
-                    const orderA = Number(a.order) || 0;
-                    const orderB = Number(b.order) || 0;
-                    if (orderA !== orderB) return orderA - orderB;
-                    const roleA = a.role || '';
-                    const roleB = b.role || '';
-                    if (roleA < roleB) return -1;
-                    if (roleA > roleB) return 1;
-                    return 0;
-                });
-
-                container.innerHTML = '';
-                experiences.forEach(d => {
-                    const achievementsHTML = (d.achievements || [])
-                        .map(a => `<li>${escapeHtml(a)}</li>`)
-                        .join('');
-
-                    const card = document.createElement('div');
-                    card.className = 'card';
-                    card.innerHTML = `
-                        <h3>${escapeHtml(d.role || '')}</h3>
-                        <p class="org">${escapeHtml(d.company || '')} | ${escapeHtml(d.location || '')}</p>
-                        <p class="date">${escapeHtml(d.dateRange || '')}</p>
-                        <ul>${achievementsHTML}</ul>
-                    `;
-                    container.appendChild(card);
-                });
-            } catch (err) {
-                console.error('Firestore error:', err);
-                container.innerHTML = '<p class="empty-state">Failed to load experiences.</p>';
-            }
-        }
-
-        loadExperiences();
-    </script>
+    <p>Experience now lives on the home page.</p>
+    <p><a href="/#experience">Go to Experience</a></p>
 </body>
 
 </html>

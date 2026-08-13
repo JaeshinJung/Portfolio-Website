@@ -14,14 +14,15 @@
     <nav>
         <ul>
             <li><a href="index.html" class="active">Home</a></li>
-            <li><a href="experience.html">Experience</a></li>
-            <li><a href="skills-awards.html">Skills</a></li>
+            <li><a href="index.html#experience">Experience</a></li>
+            <li><a href="index.html#skills">Skills</a></li>
         </ul>
     </nav>
 
     <div class="container">
 
-        <!-- HUD — avatar + name + tagline on one compact row -->
+        <!-- HUD — avatar + name + tagline on one compact row. Always visible,
+             on every app screen: siteContent/home is fetched once, up front. -->
         <div class="hud">
             <picture>
                 <source srcset="assets/avatar.webp" type="image/webp">
@@ -33,27 +34,76 @@
             </div>
         </div>
 
-        <h2>Select Stage</h2>
-        <div class="ds-console">
-            <div class="ds-screen ds-screen-top">
-                <div class="ds-preview" id="ds-preview">
-                    <p class="preview-hint">Select a cartridge below.</p>
-                </div>
-            </div>
-            <div class="ds-hinge" aria-hidden="true"></div>
-            <div class="ds-screen ds-screen-bottom">
-                <div class="ds-cartridge-list" id="ds-cartridge-list">
-                    <p class="loading-text">Loading data...</p>
-                </div>
-                <div class="ds-slot" id="ds-slot" hidden></div>
+        <!-- DS home menu: the hash-less landing screen. Four real links, so
+             hash navigation and keyboard focus work with no click handlers. -->
+        <div id="app-home" class="app-screen">
+            <h2>Select App</h2>
+            <div class="ds-menu-list">
+                <a href="#projects" class="ds-menu-icon">Projects</a>
+                <a href="#experience" class="ds-menu-icon">Experience</a>
+                <a href="#skills" class="ds-menu-icon">Skills</a>
+                <a href="#about" class="ds-menu-icon">About Me</a>
             </div>
         </div>
 
-        <hr class="section-divider">
+        <!-- Projects app — the DS dual-screen cartridge picker. -->
+        <div id="app-projects" class="app-screen" hidden>
+            <button type="button" class="pixel-btn secondary btn-sm app-back">◀ Home</button>
+            <h2>Select Stage</h2>
+            <div class="ds-console">
+                <div class="ds-screen ds-screen-top">
+                    <div class="ds-preview" id="ds-preview">
+                        <p class="preview-hint">Select a cartridge below.</p>
+                    </div>
+                </div>
+                <div class="ds-hinge" aria-hidden="true"></div>
+                <div class="ds-screen ds-screen-bottom">
+                    <div class="ds-cartridge-list" id="ds-cartridge-list">
+                        <p class="loading-text">Loading data...</p>
+                    </div>
+                    <div class="ds-slot" id="ds-slot" hidden></div>
+                </div>
+            </div>
+        </div>
 
-        <h2>About</h2>
-        <div class="about-text" id="home-about">
-            <p>Loading...</p>
+        <!-- Experience app — every entry always fully exposed, no click
+             required to reveal anything. -->
+        <div id="app-experience" class="app-screen" hidden>
+            <button type="button" class="pixel-btn secondary btn-sm app-back">◀ Home</button>
+            <h2>Experience</h2>
+            <div id="experience-list">
+                <p class="loading-text">Loading data...</p>
+            </div>
+        </div>
+
+        <!-- Skills app — same rule: the grid and Honors & Awards are always
+             fully exposed. Honors & Awards is static markup, not Firestore. -->
+        <div id="app-skills" class="app-screen" hidden>
+            <button type="button" class="pixel-btn secondary btn-sm app-back">◀ Home</button>
+            <section>
+                <h2>Technical Skills</h2>
+                <div id="skills-container">
+                    <h3 class="loading-text" style="grid-column: 1 / -1;">Loading Skills Data...</h3>
+                </div>
+            </section>
+
+            <section style="margin-top: 40px;">
+                <h2>Honors & Awards</h2>
+                <ul class="award-list">
+                    <li><strong>Dean's Honor Roll</strong> — Texas A&M Engineering (Fall 2025)</li>
+                    <li><strong>3rd Place</strong> — 2019 KSEA National Math Competition</li>
+                    <li><strong>Junior Leadership Award</strong> — NAKS (2020)</li>
+                </ul>
+            </section>
+        </div>
+
+        <!-- About app — text already fetched with the HUD, no extra request. -->
+        <div id="app-about" class="app-screen" hidden>
+            <button type="button" class="pixel-btn secondary btn-sm app-back">◀ Home</button>
+            <h2>About</h2>
+            <div class="about-text" id="home-about">
+                <p>Loading...</p>
+            </div>
         </div>
 
         <!-- Icons are inline SVG, not an icon font: three glyphs are not worth a
@@ -554,7 +604,13 @@
             ejectCartridge(true);
         });
 
+        // Fetched once, the first time the Projects app is opened — the Home
+        // menu itself must cost zero Firestore reads.
+        let projectsLoaded = false;
+
         async function loadProjects() {
+            if (projectsLoaded) return;
+            projectsLoaded = true;
             try {
                 const snapshot = await getDocs(collection(db, 'projects'));
 
@@ -620,8 +676,176 @@
             }
         }
 
+        // ---- Experience app: identical logic to the former experience.html,
+        // fetched only the first time #experience is opened. ----
+        const experienceContainer = document.getElementById('experience-list');
+        let experiencesLoaded = false;
+
+        async function loadExperiences() {
+            if (experiencesLoaded) return;
+            experiencesLoaded = true;
+            try {
+                const snapshot = await getDocs(collection(db, 'experiences'));
+
+                if (snapshot.empty) {
+                    experienceContainer.innerHTML = '<p class="empty-state">No experience data yet. Add entries from the admin panel.</p>';
+                    return;
+                }
+
+                // Sort client-side, not with orderBy(): both documents carry
+                // order: 0, so ordering on it alone is nondeterministic, and a
+                // second orderBy would need a Firestore composite index. Same
+                // fix as the stage grid.
+                const experiences = snapshot.docs.map(d => d.data());
+                experiences.sort((a, b) => {
+                    const orderA = Number(a.order) || 0;
+                    const orderB = Number(b.order) || 0;
+                    if (orderA !== orderB) return orderA - orderB;
+                    const roleA = a.role || '';
+                    const roleB = b.role || '';
+                    if (roleA < roleB) return -1;
+                    if (roleA > roleB) return 1;
+                    return 0;
+                });
+
+                experienceContainer.innerHTML = '';
+                experiences.forEach(d => {
+                    const achievementsHTML = (d.achievements || [])
+                        .map(a => `<li>${escapeHtml(a)}</li>`)
+                        .join('');
+
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.innerHTML = `
+                        <h3>${escapeHtml(d.role || '')}</h3>
+                        <p class="org">${escapeHtml(d.company || '')} | ${escapeHtml(d.location || '')}</p>
+                        <p class="date">${escapeHtml(d.dateRange || '')}</p>
+                        <ul>${achievementsHTML}</ul>
+                    `;
+                    experienceContainer.appendChild(card);
+                });
+            } catch (err) {
+                console.error('Firestore error:', err);
+                experienceContainer.innerHTML = '<p class="empty-state">Failed to load experiences.</p>';
+            }
+        }
+
+        // ---- Skills app: identical logic to the former skills-awards.html,
+        // fetched only the first time #skills is opened. ----
+        const skillsContainer = document.getElementById('skills-container');
+        let skillsLoaded = false;
+
+        async function loadSkills() {
+            if (skillsLoaded) return;
+            skillsLoaded = true;
+            try {
+                const snap = await getDocs(collection(db, 'skills'));
+
+                if (snap.empty) {
+                    skillsContainer.innerHTML = '<p>No technical skills entries yet.</p>';
+                    return;
+                }
+
+                // Sort client-side, not with orderBy(): the same fix the
+                // stage grid needed. These four categories do currently hold
+                // distinct order values, so this is the latent case rather
+                // than the live one — the tiebreaker keeps it deterministic
+                // the first time two of them collide.
+                const skills = snap.docs.map(d => d.data());
+                skills.sort((a, b) => {
+                    const orderA = Number(a.order) || 0;
+                    const orderB = Number(b.order) || 0;
+                    if (orderA !== orderB) return orderA - orderB;
+                    const catA = a.category || '';
+                    const catB = b.category || '';
+                    if (catA < catB) return -1;
+                    if (catA > catB) return 1;
+                    return 0;
+                });
+
+                skillsContainer.innerHTML = '';
+                skills.forEach(d => {
+                    const itemsStr = d.items || '';
+
+                    // Parse multiline string or fallback to comma-split
+                    let itemsList = [];
+                    if (itemsStr.includes('|') || itemsStr.includes('\n')) {
+                        // modern format: Skill | Description
+                        itemsList = itemsStr.split('\n').map(l => l.trim()).filter(Boolean).map(line => {
+                            const parts = line.split('|');
+                            return {
+                                name: parts[0] ? parts[0].trim() : '',
+                                desc: parts.length > 1 ? parts.slice(1).join('|').trim() : ''
+                            };
+                        });
+                    } else {
+                        // legacy comma format
+                        itemsList = itemsStr.split(',').map(s => s.trim()).filter(Boolean).map(name => ({
+                            name: name, desc: ''
+                        }));
+                    }
+
+                    const cardsHtml = itemsList
+                        .map(item => `
+                            <div class="skill-level-card">
+                                <div class="skill-name">${escapeHtml(item.name)}</div>
+                                ${item.desc ? `<div class="skill-desc">${escapeHtml(item.desc)}</div>` : ''}
+                            </div>
+                        `)
+                        .join('');
+
+                    skillsContainer.innerHTML += `
+                        <div class="level-1-section">
+                            <h2 class="level-1-header">${escapeHtml(d.category || 'Untitled')}</h2>
+                            <div class="level-2-grid">${cardsHtml}</div>
+                        </div>
+                    `;
+                });
+            } catch (e) {
+                console.error("Error loading skills:", e);
+                skillsContainer.innerHTML = '<p>Error loading skills data.</p>';
+            }
+        }
+
+        // ---- Hash router: 4 named routes, or none (the DS home menu). ----
+        const routes = ['projects', 'experience', 'skills', 'about'];
+        const screens = {
+            home: document.getElementById('app-home'),
+            projects: document.getElementById('app-projects'),
+            experience: document.getElementById('app-experience'),
+            skills: document.getElementById('app-skills'),
+            about: document.getElementById('app-about'),
+        };
+
+        function currentRoute() {
+            const hash = location.hash.slice(1);
+            return routes.includes(hash) ? hash : 'home';
+        }
+
+        function render() {
+            const route = currentRoute();
+            for (const [name, el] of Object.entries(screens)) {
+                el.hidden = name !== route;
+            }
+            // Each app is fetched the first time it is opened, never from the
+            // home menu — loadProjects/loadExperiences/loadSkills each cache
+            // on their own *Loaded flag, so re-entering a route re-fetches
+            // nothing.
+            if (route === 'projects') loadProjects();
+            if (route === 'experience') loadExperiences();
+            if (route === 'skills') loadSkills();
+        }
+
+        window.addEventListener('hashchange', render);
+
+        // Explicit return-to-home-menu control; does not touch Escape's
+        // existing meaning (close embed, then eject cartridge).
+        document.querySelectorAll('.app-back').forEach(btn => {
+            btn.addEventListener('click', () => { location.hash = ''; });
+        });
+
         loadHome();
-        loadProjects();
+        render();
     </script>
 </body>
 
