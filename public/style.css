@@ -468,7 +468,7 @@ h2::after {
 .ds-screen {
   background: var(--console-bg);
   border: 2px solid var(--console-line-strong);
-  padding: 24px;
+  padding: 34px;
   /* Positioned so the console-chrome ::before/::after below (speaker,
      d-pad, buttons) anchor to this box's own corners, not the page. */
   position: relative;
@@ -504,7 +504,7 @@ h2::after {
 }
 
 /* Decorative console chrome, sized and inset to stay entirely inside the
-   24px padding gutter above — never reaching into the content area where
+   34px padding gutter above — never reaching into the content area where
    .ds-preview/.ds-menu-list/.ds-cartridge-list actually paint. Native pixel
    dimensions (no upscaling) so the pixel art stays sharp at this size. */
 .ds-screen-top::after,
@@ -518,28 +518,28 @@ h2::after {
 
 /* Speaker grille, top-right of the top screen. */
 .ds-screen-top::after {
-  top: 6px;
-  right: 6px;
-  width: 14px;
-  height: 10px;
+  top: 4px;
+  right: 4px;
+  width: 28px;
+  height: 28px;
   background-image: url('assets/sprites/console-speaker.png');
 }
 
 /* D-pad, bottom-left of the bottom screen. */
 .ds-screen-bottom::before {
-  bottom: 6px;
-  left: 6px;
-  width: 16px;
-  height: 16px;
+  bottom: 4px;
+  left: 4px;
+  width: 28px;
+  height: 28px;
   background-image: url('assets/sprites/console-dpad.png');
 }
 
 /* Face buttons, bottom-right of the bottom screen. */
 .ds-screen-bottom::after {
-  bottom: 6px;
-  right: 6px;
-  width: 16px;
-  height: 8px;
+  bottom: 4px;
+  right: 4px;
+  width: 28px;
+  height: 28px;
   background-image: url('assets/sprites/console-buttons.png');
 }
 
@@ -751,15 +751,15 @@ h2::after {
 }
 
 /* The transparent hole is NOT centred in the sprite: its bounding box is
-   (48,34)-(147,108), 100x75, so its centre sits 5.5px below the image's.
-   These four numbers are that box as percentages of 196x132 — the screenshot
+   (50,25)-(152,105), 103x81, so its centre sits above the image's. These
+   four numbers are that box as percentages of 196x132 — the screenshot
    is placed against the hole, never against the image. */
 .boss-hole {
   position: absolute;
-  left: 24.4898%;
-  top: 25.7576%;
-  width: 51.0204%;
-  height: 56.8182%;
+  left: 25.51%;
+  top: 18.94%;
+  width: 52.55%;
+  height: 61.36%;
   overflow: hidden;
   background: var(--bg);
 }

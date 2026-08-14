@@ -1,0 +1,6 @@
+; Console chrome palette (D-pad, buttons, speaker grill) - the site's existing
+; navy 3-tone family, matching the CSS tokens --console-line / --console-line-strong.
+
+#1E3A5A
+#2C4F73
+#122A42

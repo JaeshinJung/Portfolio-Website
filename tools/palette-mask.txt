@@ -1,0 +1,5 @@
+; Cartridge alpha-mask palette (body/trim masks) - forces a pure white silhouette
+; regardless of the AI draft's shading, since these are used only as CSS
+; mask-image sources where color is irrelevant and only opaque-vs-transparent matters.
+
+#FFFFFF
