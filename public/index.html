@@ -878,7 +878,19 @@
         // Explicit return-to-home-menu control; does not touch Escape's
         // existing meaning (close embed, then eject cartridge).
         document.querySelectorAll('.app-back').forEach(btn => {
-            btn.addEventListener('click', () => { location.hash = ''; });
+            btn.addEventListener('click', () => {
+                const leavingRoute = currentRoute();
+                location.hash = '';
+                // hashchange (and its render()) fires asynchronously, but a
+                // hidden element's descendants aren't focusable — call
+                // render() here so #app-home is un-hidden before we focus
+                // into it. The hashchange listener will re-run render()
+                // afterward too; that's a harmless no-op.
+                render();
+                const target = document.querySelector(`.ds-menu-icon[href="#${leavingRoute}"]`)
+                    || document.querySelector('.ds-menu-icon');
+                if (target) target.focus();
+            });
         });
 
         loadHome();
