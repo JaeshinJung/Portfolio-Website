@@ -250,7 +250,7 @@ h2::after {
   gap: 16px;
   background: var(--surface);
   padding: 12px 16px;
-  margin-bottom: 44px;
+  margin-bottom: 20px;
   border: 2px solid var(--line);
 }
 
@@ -278,6 +278,15 @@ h2::after {
   font-size: 13px;
   color: var(--text-dim);
   line-height: 1.5;
+}
+
+/* .loading-text's own padding/text-align are sized for a full-width block
+   loading state (see LOADING / EMPTY STATES below); the HUD is a compact
+   flex row, so neutralize just those two properties here — its color,
+   font-family and blink-cursor animation still apply untouched. */
+.hud .loading-text {
+  padding: 0;
+  text-align: left;
 }
 
 /* ============================================================
@@ -463,24 +472,45 @@ h2::after {
 .ds-console {
   max-width: 820px;
   margin: 0 auto;
+  background: var(--console-bg);
+  border-radius: 20px;
+  padding: 14px;
+}
+
+/* Each row pairs a fixed-width control zone on either side of a
+   content-driven screen — the device body never changes shape,
+   regardless of what the screen holds. */
+.ds-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ds-side {
+  width: 44px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .ds-screen {
-  background: var(--console-bg);
-  border: 2px solid var(--console-line-strong);
-  padding: 34px;
-  /* Positioned so the console-chrome ::before/::after below (speaker,
-     d-pad, buttons) anchor to this box's own corners, not the page. */
+  flex: 1;
+  /* Without this, a flex child with wide content (e.g. the 960px game
+     iframe) can force the row to overflow instead of the screen
+     shrinking to the row's available space. */
+  min-width: 0;
+  background: #06111C;
+  border-radius: 8px;
+  padding: 20px;
+  /* .site-id and other absolutely-positioned children inside
+     .ds-screen-top rely on this. */
   position: relative;
 }
 
-.ds-screen-top {
-  min-height: 220px;
-}
-
-/* The global h2 rule is sized for a full-page heading; the top screen is a
-   220px-min-height box that also holds the site-id corner tag and the
-   preview content below, so the heading needs to be much more compact here. */
+/* The global h2 rule is sized for a full-page heading; the top screen also
+   holds the site-id corner tag and the preview content below, so the
+   heading needs to be much more compact here. */
 .ds-screen-top h2 {
   margin-bottom: 10px;
   font-size: 14px;
@@ -503,52 +533,141 @@ h2::after {
   min-height: 32px;
 }
 
-/* Decorative console chrome, sized and inset to stay entirely inside the
-   34px padding gutter above — never reaching into the content area where
-   .ds-preview/.ds-menu-list/.ds-cartridge-list actually paint. Native pixel
-   dimensions (no upscaling) so the pixel art stays sharp at this size. */
-.ds-screen-top::after,
-.ds-screen-bottom::before,
-.ds-screen-bottom::after {
+/* D-pad — a 32x32 gold cross, centered in its 44px control zone. */
+.ds-side-dpad {
+  position: relative;
+  width: 44px;
+  height: 44px;
+}
+
+.ds-side-dpad::before {
+  /* vertical bar */
   content: '';
   position: absolute;
-  image-rendering: pixelated;
-  pointer-events: none;
+  left: 50%;
+  top: 50%;
+  width: 10px;
+  height: 32px;
+  transform: translate(-50%, -50%);
+  background: var(--accent);
+  border-radius: 2px;
 }
 
-/* Speaker grille, top-right of the top screen. */
-.ds-screen-top::after {
-  top: 4px;
-  right: 4px;
-  width: 28px;
-  height: 28px;
-  background-image: url('assets/sprites/console-speaker.png');
+.ds-side-dpad::after {
+  /* horizontal bar */
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 32px;
+  height: 10px;
+  transform: translate(-50%, -50%);
+  background: var(--accent);
+  border-radius: 2px;
 }
 
-/* D-pad, bottom-left of the bottom screen. */
-.ds-screen-bottom::before {
-  bottom: 4px;
-  left: 4px;
-  width: 28px;
-  height: 28px;
-  background-image: url('assets/sprites/console-dpad.png');
+/* Speaker grille — two rows of 3 gold dots with an empty middle row
+   between them, top-left and top-right of the top screen. */
+.ds-side-speaker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  width: 44px;
 }
 
-/* Face buttons, bottom-right of the bottom screen. */
-.ds-screen-bottom::after {
-  bottom: 4px;
-  right: 4px;
-  width: 28px;
-  height: 28px;
-  background-image: url('assets/sprites/console-buttons.png');
+.ds-dot-row {
+  display: flex;
+  gap: 5px;
 }
 
-/* The gap between the two screens, like a DS's hinge. */
+.ds-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+/* Face buttons — 4 gold circles in a tight diamond, bottom-right of the
+   bottom screen. */
+.ds-side-buttons {
+  position: relative;
+  width: 44px;
+  height: 44px;
+}
+
+.ds-face-btn {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.ds-face-btn-top {
+  left: 50%;
+  top: 33%;
+  transform: translate(-50%, -50%);
+}
+
+.ds-face-btn-bottom {
+  left: 50%;
+  top: 67%;
+  transform: translate(-50%, -50%);
+}
+
+.ds-face-btn-left {
+  left: 33%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.ds-face-btn-right {
+  left: 67%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* The gap between the two screens, like a DS's hinge — hosts the mic,
+   the slide switch, and the power LED. */
 .ds-hinge {
-  height: 14px;
+  position: relative;
+  height: 16px;
   background: var(--console-line);
-  border-left: 2px solid var(--console-line-strong);
-  border-right: 2px solid var(--console-line-strong);
+  border-radius: 4px;
+}
+
+.ds-hinge-mic {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 4px;
+  height: 4px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: var(--bg);
+}
+
+.ds-hinge-slider {
+  position: absolute;
+  right: 56px;
+  top: 50%;
+  width: 30px;
+  height: 4px;
+  transform: translateY(-50%);
+  border-radius: 2px;
+  background: var(--console-line-strong);
+}
+
+.ds-hinge-led {
+  position: absolute;
+  right: 18px;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  transform: translateY(-50%);
+  border-radius: 50%;
+  background: var(--cleared);
 }
 
 .preview-hint {
@@ -1451,4 +1570,17 @@ h2::after {
 /* Phones only. Only genuinely row-bound things need stacking here. */
 @media (max-width: 652px) {
   .contact-links { flex-direction: column; align-items: center; }
+}
+
+/* Narrow phones: .hud now lives inside .ds-screen-top, nested behind two
+   44px .ds-side control zones plus .ds-console/.ds-screen/.hud's own
+   padding. That leaves too little width for the avatar-left/text-right row
+   below ~480px, so stack it — avatar centered on top, text below — instead
+   of squeezing the tagline into a one-word-per-line column. */
+@media (max-width: 480px) {
+  .hud {
+    flex-direction: column;
+    text-align: center;
+  }
+  .hud-text { text-align: center; }
 }

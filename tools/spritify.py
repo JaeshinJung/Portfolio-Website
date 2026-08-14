@@ -8,6 +8,10 @@ Pipeline: load RGBA -> optional --crop -> background key-out -> hard alpha cut
 -> slice (sheet mode) -> trim -> nearest-neighbor downscale -> optional --pad
 -> palette remap -> save PNG.
 
+`cells` mode replaces the middle of that pipeline: it splits the sheet by
+ARITHMETIC (--cell / --grid), never trims, uses ONE scale factor for the whole
+sheet, and can --extrude the tile edges instead of --pad-ing them.
+
 The generation prompt must ask for a solid #FF00FF magenta background (see
 tools/README.md): a dark background is genuinely inseparable from a dark
 creature, because the palette itself contains near-identical darks.
@@ -96,7 +100,7 @@ def read_palette(path):
     return colors
 
 
-def parse_size(text):
+def parse_size(text, what="--size"):
     t = text.lower().strip()
     try:
         if "x" in t:
@@ -106,9 +110,9 @@ def parse_size(text):
             v = int(t)
             size = (v, v)
     except ValueError:
-        fail("bad --size %r (expected 64 or 128x72)" % text)
+        fail("bad %s %r (expected 64 or 128x72)" % (what, text))
     if size[0] < 1 or size[1] < 1:
-        fail("bad --size %r (must be positive)" % text)
+        fail("bad %s %r (must be positive)" % (what, text))
     return size
 
 
@@ -649,6 +653,62 @@ def fit_nearest(img, target, pad=0):
     return canvas, (cw, ch), (nw, nh)
 
 
+def cell_grid(size, cell, grid):
+    """Split a sheet ARITHMETICALLY. Returns (cols, rows, cell_w, cell_h).
+
+    Deliberately NOT column_groups(): that projects alpha and cuts where the ink
+    happens to stop, so a frame whose sprite is narrower comes out a different
+    width than its neighbours. For tiles and animation frames the CELL is the
+    authority, not the ink. A sheet that does not divide evenly is an error, not
+    something to trim away.
+    """
+    w, h = size
+    if (cell is None) == (grid is None):
+        fail("cells mode needs exactly one of --cell WxH (cell size in px) or\n"
+             "  --grid COLSxROWS (how many cells). Got %s."
+             % ("both" if cell else "neither"))
+
+    if grid is not None:
+        cols, rows = grid
+        if w % cols or h % rows:
+            fail("sheet is %dx%d, which does not divide into a %dx%d grid"
+                 " (remainder %dx%d px).\n"
+                 "  Refusing to silently drop the leftover strip. Re-crop the input"
+                 " (--crop L,T,R,B)\n  or pick a grid that divides the sheet."
+                 % (w, h, cols, rows, w % cols, h % rows))
+        return cols, rows, w // cols, h // rows
+
+    cw, ch = cell
+    if w % cw or h % ch:
+        fail("sheet is %dx%d, which is not a whole number of --cell %dx%d cells"
+             " (remainder %dx%d px).\n"
+             "  Refusing to silently drop the leftover strip. Re-crop the input"
+             " (--crop L,T,R,B)\n  or pick a cell size that divides the sheet."
+             % (w, h, cw, ch, w % cw, h % ch))
+    return w // cw, h // ch, cw, ch
+
+
+def extrude_edges(img, n):
+    """Duplicate the outermost pixel row/column N px outward (tile edge bleed).
+
+    The opposite of --pad: --pad surrounds the frame with TRANSPARENT margin,
+    --extrude surrounds it with copies of its own border pixels. Sampling by
+    clamping, so the corners get the corner pixel. Copies pixels verbatim, so
+    alpha stays 0-or-255 and no new colors enter the palette.
+    """
+    w, h = img.size
+    src = list(img.getdata())
+    out = []
+    for y in range(h + 2 * n):
+        row = src[min(max(y - n, 0), h - 1) * w:][:w]
+        out.extend([row[0]] * n)
+        out.extend(row)
+        out.extend([row[-1]] * n)
+    res = Image.new("RGBA", (w + 2 * n, h + 2 * n))
+    res.putdata(out)
+    return res
+
+
 def remap_palette(img, palette):
     """Snap every opaque pixel to the nearest palette color. Returns (img, hist)."""
     px = list(img.getdata())
@@ -717,6 +777,13 @@ def load_prepared(args, palette):
         img, dropped = reject_fringe(img, args.bg, palette)
         print("  fringe reject: %d px closer to %s than to any palette color removed"
               % (dropped, fmt_rgb(args.bg)))
+    if args.mode == "cells":
+        # The cell grid is the authority here, so the content-based rejectors are
+        # not run at all: blanking a "too small" row band or component would
+        # silently eat a small tile. There is no flag to turn them back on.
+        print("  content-based rejectors (outlier row bands, speck components):"
+              " not run in cells mode")
+        return img
     if args.keep_outliers:
         print("  outlier row bands: kept (--keep-outliers)")
     else:
@@ -828,15 +895,101 @@ def cmd_single(args, palette):
     process(pieces, targets, args, palette)
 
 
+def process_cells(pieces, targets, args, palette, out_size):
+    """Render every cell in memory first, then write - never a partial file set.
+
+    The cell IS the frame: no alpha trim, no per-piece bbox, no re-centering, and
+    `out_size` is computed ONCE by the caller so every cell gets the identical
+    scale factor. That is the whole point of this path - fit_nearest deliberately
+    does the opposite (per-piece trim + per-piece scale), which is right for a row
+    of loose creatures and wrong for a tile grid.
+    """
+    rendered = []
+    for (label, rc, cell), target in zip(pieces, targets):
+        piece = cell if cell.size == out_size else cell.resize(out_size, Image.NEAREST)
+        if args.extrude:
+            piece = extrude_edges(piece, args.extrude)
+        elif args.pad:
+            canvas = Image.new("RGBA", (out_size[0] + 2 * args.pad, out_size[1] + 2 * args.pad),
+                               (0, 0, 0, 0))
+            canvas.paste(piece, (args.pad, args.pad))
+            piece = canvas
+        piece, hist, clear = remap_palette(piece, palette)
+        rendered.append((label, rc, piece, hist, clear, target))
+
+    fw, fh = rendered[0][2].size
+    if args.extrude:
+        print("  extrude: +%dpx edge bleed on all sides -> %dx%d (outermost row/column"
+              " duplicated outward)" % (args.extrude, fw, fh))
+    elif args.pad:
+        print("  pad: +%dpx transparent on all sides -> %dx%d" % (args.pad, fw, fh))
+
+    blank = [r[0] for r in rendered if r[4] == fw * fh]
+    if blank:
+        warn("%d of %d cell(s) are fully transparent: %s.\n"
+             "  Either the grid does not line up with the sheet, or the sheet really has\n"
+             "  blank cells. The cell grid is arithmetic, so nothing here re-aligns it."
+             % (len(blank), len(rendered), ", ".join(blank)))
+        if args.strict:
+            fail("%d blank cell(s) with --strict - nothing written." % len(blank))
+
+    for label, rc, piece, hist, clear, target in rendered:
+        print("  %s -> %s" % (label, target))
+        print("      cell row %d col %d: %dx%d -> %dx%d (file %dx%d)"
+              % (rc[0], rc[1], rc[2], rc[3], out_size[0], out_size[1], fw, fh))
+        print(format_hist(palette, hist, clear))
+        if args.dry_run:
+            print("      DRY RUN - not written")
+            continue
+        target.parent.mkdir(parents=True, exist_ok=True)
+        piece.save(target, "PNG", optimize=True)
+        print("      written (%d bytes)" % target.stat().st_size)
+
+
+def cmd_cells(args, palette):
+    img = load_prepared(args, palette)
+    cols, rows, cw, ch = cell_grid(img.size, args.cell, args.grid)
+    print("  grid: %d col(s) x %d row(s) of %dx%d px - arithmetic split, no alpha projection"
+          % (cols, rows, cw, ch))
+
+    # ONE scale for the whole sheet. Every cell is the same size by construction,
+    # so this is the same number for all of them - stated here rather than left
+    # to coincidence. Still never upscales (the min(..., 1.0)).
+    if args.size:
+        scale = min(args.size[0] / cw, args.size[1] / ch, 1.0)
+    else:
+        scale = 1.0
+    out_size = (max(1, int(round(cw * scale))), max(1, int(round(ch * scale))))
+    print("  scale: x%g for EVERY cell -> %dx%d (one factor for the whole sheet, never upscaled)"
+          % (scale, out_size[0], out_size[1]))
+
+    n = cols * rows
+    digits = max(2, len(str(n - 1)))
+    names = ["%s-%0*d" % (args.name, digits, i) for i in range(n)]
+    targets = resolve_targets(names, args.out_dir, args.force)
+    pieces = []
+    for i, name in enumerate(names):
+        r, c = divmod(i, cols)
+        pieces.append((name, (r, c, cw, ch),
+                       img.crop((c * cw, r * ch, (c + 1) * cw, (r + 1) * ch))))
+    process_cells(pieces, targets, args, palette, out_size)
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(
         prog="spritify.py",
         description="Convert AI-generated pixel-art drafts into palette-exact sprites.")
     sub = parser.add_subparsers(dest="mode", required=True)
 
-    def common(p, default_size):
+    def common(p, default_size, rejectors=True):
         p.add_argument("input")
-        p.add_argument("--size", default=default_size, help="64 or 128x72 (default %s)" % default_size)
+        if default_size is None:  # cells mode: the cell decides, --size only caps it
+            p.add_argument("--size", default=None,
+                           help="64 or 128x72: an upper bound on ONE cell. Omit it to keep the "
+                                "cells at native size (1:1)")
+        else:
+            p.add_argument("--size", default=default_size,
+                           help="64 or 128x72 (default %s)" % default_size)
         p.add_argument("--palette", default=str(DEFAULT_PALETTE))
         p.add_argument("--out-dir", default=str(DEFAULT_OUT_DIR))
         p.add_argument("--bg", default=DEFAULT_BG,
@@ -850,20 +1003,21 @@ def main(argv=None):
         p.add_argument("--crop", help="cut the input to L,T,R,B (pixel box, right/bottom "
                                       "exclusive) before anything else - the escape hatch "
                                       "for a watermark the heuristics miss")
-        p.add_argument("--row-min-gap", type=int, default=16,
-                       help="empty-row runs narrower than this do not split a row band")
-        p.add_argument("--outlier-max-share", type=float, default=0.02,
-                       help="row bands holding less than this fraction of the main band's "
-                            "opaque pixels are dropped as generator noise")
-        p.add_argument("--keep-outliers", action="store_true",
-                       help="never drop outlier row bands (keeps generator watermarks in)")
-        p.add_argument("--min-area", type=float, default=0.01,
-                       help="drop 8-connected opaque components smaller than this, before "
-                            "the trim/bbox step. Below 1 it is a fraction of the largest "
-                            "component (default 0.01 = 1%%); 1 or more is an absolute pixel "
-                            "count")
-        p.add_argument("--keep-specks", action="store_true",
-                       help="never drop small components (keeps watermark remnants in)")
+        if rejectors:  # off for cells mode, which never runs the content-based rejectors
+            p.add_argument("--row-min-gap", type=int, default=16,
+                           help="empty-row runs narrower than this do not split a row band")
+            p.add_argument("--outlier-max-share", type=float, default=0.02,
+                           help="row bands holding less than this fraction of the main band's "
+                                "opaque pixels are dropped as generator noise")
+            p.add_argument("--keep-outliers", action="store_true",
+                           help="never drop outlier row bands (keeps generator watermarks in)")
+            p.add_argument("--min-area", type=float, default=0.01,
+                           help="drop 8-connected opaque components smaller than this, before "
+                                "the trim/bbox step. Below 1 it is a fraction of the largest "
+                                "component (default 0.01 = 1%%); 1 or more is an absolute pixel "
+                                "count")
+            p.add_argument("--keep-specks", action="store_true",
+                           help="never drop small components (keeps watermark remnants in)")
         p.add_argument("--pad", type=int, default=0,
                        help="add N fully transparent pixels on all four sides AFTER the fit; "
                             "does not change the scale, so --size 64x64 --pad 2 writes a "
@@ -886,20 +1040,49 @@ def main(argv=None):
     common(p_single, "64")
     p_single.add_argument("--name", required=True, help="written as <name>.png")
 
+    p_cells = sub.add_parser("cells", help="a fixed grid of equal cells (tiles, animation frames)")
+    # rejectors=False: the cell grid is the authority here, so the content-based
+    # rejectors never run and their five options are not offered at all (rather
+    # than accepted and ignored).
+    common(p_cells, None, rejectors=False)
+    p_cells.add_argument("--name", required=True,
+                         help="written as <name>-00.png, <name>-01.png, ... row-major")
+    p_cells.add_argument("--cell", help="cell size in px, e.g. 32x32. The sheet must divide "
+                                        "evenly by it or the run fails")
+    p_cells.add_argument("--grid", help="how many cells, e.g. 4x2 (COLSxROWS). The sheet must "
+                                        "divide evenly by it or the run fails")
+    p_cells.add_argument("--extrude", type=int, default=0,
+                         help="duplicate the outermost pixel row/column N px outward (tile "
+                              "edge bleed). Mutually exclusive with --pad, which adds "
+                              "TRANSPARENT margin instead")
+
     args = parser.parse_args(argv)
-    args.size = parse_size(args.size)
+    if args.size is not None:
+        args.size = parse_size(args.size)
     args.out_dir = Path(args.out_dir)
     args.bg = parse_bg(args.bg)
     if not 0.0 <= args.fuzz <= 1.0:
         fail("--fuzz must be between 0 and 1")
     if not 1 <= args.alpha_cut <= 255:
         fail("--alpha-cut must be between 1 and 255")
-    if not 0.0 <= args.outlier_max_share <= 1.0:
-        fail("--outlier-max-share must be between 0 and 1")
-    if args.min_area < 0.0:
-        fail("--min-area must not be negative")
+    if args.mode != "cells":  # cells mode does not have the rejector options
+        if not 0.0 <= args.outlier_max_share <= 1.0:
+            fail("--outlier-max-share must be between 0 and 1")
+        if args.min_area < 0.0:
+            fail("--min-area must not be negative")
     if args.pad < 0:
         fail("--pad must not be negative")
+    if args.mode == "cells":
+        if args.extrude < 0:
+            fail("--extrude must not be negative")
+        if args.pad and args.extrude:
+            fail("--pad and --extrude are mutually exclusive.\n"
+                 "  --pad %d adds TRANSPARENT margin (bleed room for a lone sprite);\n"
+                 "  --extrude %d copies the border pixels outward (bleed for a tile that\n"
+                 "  sits flush against its neighbours). Doing both is never what you want."
+                 % (args.pad, args.extrude))
+        args.cell = parse_size(args.cell, "--cell") if args.cell else None
+        args.grid = parse_size(args.grid, "--grid") if args.grid else None
     if args.crop:
         args.crop = parse_crop(args.crop)
     palette = read_palette(Path(args.palette))
@@ -909,6 +1092,8 @@ def main(argv=None):
 
     if args.mode == "sheet":
         cmd_sheet(args, palette)
+    elif args.mode == "cells":
+        cmd_cells(args, palette)
     else:
         cmd_single(args, palette)
     return 0
