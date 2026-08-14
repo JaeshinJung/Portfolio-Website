@@ -223,16 +223,21 @@ h2::after {
 }
 
 /* ============================================================
-   SITE ID — persistent tiny wordmark, on every screen (not just home)
+   SITE ID — persistent tiny wordmark, corner-anchored inside whichever
+   console-styled frame the current screen has (.ds-screen-top on the two
+   dual-screen apps, .console-strip on the others) — never a bare page-level
+   element outside a bordered frame.
    ============================================================ */
 .site-id {
+  position: absolute;
+  top: 6px;
+  left: 8px;
   font-family: var(--font-display);
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--text-dim);
-  margin-bottom: 12px;
 }
 
 /* ============================================================
@@ -471,6 +476,31 @@ h2::after {
 
 .ds-screen-top {
   min-height: 220px;
+}
+
+/* The global h2 rule is sized for a full-page heading; the top screen is a
+   220px-min-height box that also holds the site-id corner tag and the
+   preview content below, so the heading needs to be much more compact here. */
+.ds-screen-top h2 {
+  margin-bottom: 10px;
+  font-size: 14px;
+  padding-bottom: 6px;
+}
+
+/* Slim, console-styled strip for screens without a full dual-screen
+   console (Experience/Skills/About): just enough frame to hold the
+   corner-anchored .site-id, none of .ds-screen's chrome or min-height. */
+.console-strip {
+  position: relative;
+  max-width: 820px;
+  margin: 0 auto 20px;
+  background: var(--console-bg);
+  border: 2px solid var(--console-line-strong);
+  padding: 8px 14px;
+  /* .site-id is its only child and is absolutely positioned, so the strip
+     has no in-flow content to size itself on — min-height keeps the
+     corner-anchored text from overflowing the strip's own border. */
+  min-height: 32px;
 }
 
 /* Decorative console chrome, sized and inset to stay entirely inside the
