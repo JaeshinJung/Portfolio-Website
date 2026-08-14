@@ -223,6 +223,19 @@ h2::after {
 }
 
 /* ============================================================
+   SITE ID — persistent tiny wordmark, on every screen (not just home)
+   ============================================================ */
+.site-id {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+  margin-bottom: 12px;
+}
+
+/* ============================================================
    HOME — HUD BAR
    One compact row above the stage grid: pixel avatar, name, tagline.
    ============================================================ */
@@ -451,10 +464,53 @@ h2::after {
   background: var(--console-bg);
   border: 2px solid var(--console-line-strong);
   padding: 24px;
+  /* Positioned so the console-chrome ::before/::after below (speaker,
+     d-pad, buttons) anchor to this box's own corners, not the page. */
+  position: relative;
 }
 
 .ds-screen-top {
   min-height: 220px;
+}
+
+/* Decorative console chrome, sized and inset to stay entirely inside the
+   24px padding gutter above — never reaching into the content area where
+   .ds-preview/.ds-menu-list/.ds-cartridge-list actually paint. Native pixel
+   dimensions (no upscaling) so the pixel art stays sharp at this size. */
+.ds-screen-top::after,
+.ds-screen-bottom::before,
+.ds-screen-bottom::after {
+  content: '';
+  position: absolute;
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+
+/* Speaker grille, top-right of the top screen. */
+.ds-screen-top::after {
+  top: 6px;
+  right: 6px;
+  width: 14px;
+  height: 10px;
+  background-image: url('assets/sprites/console-speaker.png');
+}
+
+/* D-pad, bottom-left of the bottom screen. */
+.ds-screen-bottom::before {
+  bottom: 6px;
+  left: 6px;
+  width: 16px;
+  height: 16px;
+  background-image: url('assets/sprites/console-dpad.png');
+}
+
+/* Face buttons, bottom-right of the bottom screen. */
+.ds-screen-bottom::after {
+  bottom: 6px;
+  right: 6px;
+  width: 16px;
+  height: 8px;
+  background-image: url('assets/sprites/console-buttons.png');
 }
 
 /* The gap between the two screens, like a DS's hinge. */
@@ -531,9 +587,28 @@ h2::after {
 .cartridge-shell {
   display: block;
   width: 64px;
-  height: 48px;
-  background: var(--surface-2);
-  border: 2px solid var(--line-strong);
+  height: 80px;
+  -webkit-mask-image: url('assets/sprites/cartridge-body-mask.png');
+  mask-image: url('assets/sprites/cartridge-body-mask.png');
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  background-color: var(--cartridge-body, var(--surface-2));
+  position: relative; /* so the ::after trim overlay can use inset:0 */
+}
+
+.cartridge-shell::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  -webkit-mask-image: url('assets/sprites/cartridge-trim-mask.png');
+  mask-image: url('assets/sprites/cartridge-trim-mask.png');
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  background-color: var(--cartridge-trim, var(--line-strong));
 }
 
 .cartridge-label {
