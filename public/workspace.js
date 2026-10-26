@@ -1,5 +1,6 @@
 /* Workspace shell for index.html: hash router, mobile navigation drawer, the
-   siteContent/home introduction and the projects/experiences records. No
+   siteContent/home introduction, the skills categories and the
+   projects/experiences records. No
    dependencies, no build step. Every Firestore string is rendered with
    textContent, never innerHTML, and every Firestore URL is parsed and
    protocol-checked before it reaches an href, src or iframe. */
@@ -44,13 +45,9 @@ function externalUrl(value, protocols = ['https:', 'http:']) {
 // header breadcrumb and the document title.
 const VIEWS = {
     about: { group: 'Introduction', label: 'About' },
+    skills: { group: 'Introduction', label: 'Skills' },
     contact: { group: 'Introduction', label: 'Contact' },
 };
-
-// The DS console's hash routes that the workspace does not render yet. Old
-// shared links keep working by forwarding to the same screen in the
-// preserved console page.
-const LEGACY_ROUTES = new Set(['skills']);
 
 const DEFAULT_ROUTE = 'about';
 
@@ -69,7 +66,7 @@ function hrefFor(kind, id) {
     return `#${routeKey(kind, id)}`;
 }
 
-// { view: 'about' | 'contact' | 'notfound' } or { view: 'record', kind, id }.
+// { view: 'about' | 'skills' | 'contact' | 'notfound' } or { view: 'record', kind, id }.
 // id is null for a bare #projects / #experience.
 function parseRoute(raw) {
     // Own properties only, so #constructor, #toString etc. are not mistaken
@@ -93,15 +90,7 @@ const crumbPage = document.getElementById('ws-crumb-page');
 const views = document.querySelectorAll('.ws-view');
 
 function render({ moveFocus }) {
-    const raw = currentRoute();
-
-    if (LEGACY_ROUTES.has(raw)) {
-        // replace(), so Back does not bounce straight into this redirect.
-        location.replace(`legacy.html#${raw}`);
-        return;
-    }
-
-    const route = parseRoute(raw);
+    const route = parseRoute(currentRoute());
 
     // A bare #projects / #experience (old console links, the intro's
     // prompts) opens the first record. replaceState, not a new entry, so
@@ -123,6 +112,8 @@ function render({ moveFocus }) {
         meta = renderRecord(route);
     } else {
         clearRecord();
+        // Fetched the first time the view is opened, not on page load.
+        if (name === 'skills' && skills.state === 'idle') loadSkills();
         meta = Object.hasOwn(VIEWS, name)
             ? { ...VIEWS[name], navKey: name }
             : { group: 'Workspace', label: 'Not found', navKey: null };
@@ -237,7 +228,7 @@ sidebar.addEventListener('keydown', e => {
 
 // Choosing a workspace link closes the drawer; render() then moves focus to
 // the new view's heading. Same-page links fire no hashchange, so focus the
-// heading here. Links to legacy.html leave the page and need nothing.
+// heading here.
 sidebar.addEventListener('click', e => {
     const link = e.target.closest('a[href^="#"]');
     if (!link || !drawerOpen) return;
@@ -254,8 +245,8 @@ drawerQuery.addEventListener('change', e => {
 // ---- Shared content helpers ----
 
 // Firestore stores the avatar and every project screenshot as a GitHub blob
-// URL for a file that already ships in public/assets/ (see legacy.html for
-// the full history). Serve the local copy instead.
+// URL for a file that already ships in public/assets/ (see the retired
+// console page, legacy.html in git history). Serve the local copy instead.
 const GITHUB_ASSET_URL = /^https:\/\/github\.com\/[^/]+\/[^/]+\/blob\/[^/]+\/public\/assets\/([^/?#]+)(?:[?#]|$)/;
 
 function assetBasename(url) {
@@ -270,7 +261,7 @@ function assetBasename(url) {
 
 // Basenames with a .webp sibling in public/assets. Listed, not derived: a
 // <source> naming a file that is not there would cost a 404. Same list as
-// legacy.html.
+// the retired console page.
 const WEBP_ASSETS = new Set([
     'avatar.png', 'Console Shooting.png', 'Defusion Confusion.png',
     'Dungeon Maze.png', 'Eraser Escape.png', 'HorroSchool.png',
@@ -327,17 +318,34 @@ function statusLine(message, onRetry) {
 
 // ---- Introduction content: siteContent/home ----
 
+// The bundled photo in the markup is the default. Firestore still holds the
+// retired pixel avatar's URL (GitHub blob, raw, or local path); ignore any
+// URL naming avatar.png/.webp so it cannot replace the photo. Any other
+// http(s) URL is a deliberate custom photo and wins.
+const DEFAULT_PROFILE_IMAGE = 'assets/jaeshin-profile.jpg';
+const RETIRED_AVATAR = /(?:^|\/)avatar\.(?:png|webp)$/i;
+
+function isRetiredAvatar(url) {
+    try {
+        const { pathname } = new URL(url, document.baseURI);
+        return RETIRED_AVATAR.test(decodeURIComponent(pathname));
+    } catch {
+        return false;
+    }
+}
+
 function setProfileImage(url) {
     const img = document.getElementById('home-img');
-    if (assetBasename(url) === 'avatar.png') return; // already showing it
-    if (!isHttpUrl(url)) return;
-    // The static <source> names the bundled avatar; drop it so the new src
-    // is the only candidate.
-    const picture = img.parentElement;
-    if (picture && picture.tagName === 'PICTURE') {
-        picture.querySelectorAll('source').forEach(s => s.remove());
-    }
-    img.src = url;
+    if (isRetiredAvatar(url)) return;
+    const file = assetBasename(url);
+    const src = file ? `assets/${encodeURIComponent(file)}` : url;
+    if (!file && !isHttpUrl(url)) return;
+    if (img.getAttribute('src') === src) return;
+    // A broken custom URL falls back to the default photo, not a broken box.
+    img.addEventListener('error', () => {
+        if (img.getAttribute('src') !== DEFAULT_PROFILE_IMAGE) img.src = DEFAULT_PROFILE_IMAGE;
+    }, { once: true });
+    img.src = src;
 }
 
 const homeTitle = document.getElementById('home-title');
@@ -347,7 +355,15 @@ const homeStatus = document.getElementById('home-status');
 
 // The same fallbacks the console page used when the document is missing.
 const FALLBACK_TITLE = 'Jaeshin Jung';
-const FALLBACK_SUBTITLE = 'Computer Science @ Texas A&M University';
+const FALLBACK_SUBTITLE = 'CS Major · Game Design Minor at Texas A&M University';
+
+// The stored subtitle still opens with an older, ambiguous phrase. Rewrite
+// just that opening; anything after it, and any other subtitle, is kept.
+const OLD_SUBTITLE_OPENING = /^\s*CS\s*&\s*Game Design at Texas A&M(?: University)?/i;
+
+function normalizeSubtitle(subtitle) {
+    return subtitle.replace(OLD_SUBTITLE_OPENING, 'CS Major · Game Design Minor at Texas A&M University');
+}
 
 function showStatus(message, withRetry) {
     homeStatus.replaceChildren();
@@ -381,7 +397,7 @@ async function loadHome() {
         homeTitle.textContent = typeof data.heroTitle === 'string' && data.heroTitle.trim()
             ? data.heroTitle : FALLBACK_TITLE;
         homeSubtitle.textContent = typeof data.heroSubtitle === 'string' && data.heroSubtitle.trim()
-            ? data.heroSubtitle : FALLBACK_SUBTITLE;
+            ? normalizeSubtitle(data.heroSubtitle) : FALLBACK_SUBTITLE;
         if (typeof data.profileImageUrl === 'string' && data.profileImageUrl) {
             setProfileImage(data.profileImageUrl);
         }
@@ -404,6 +420,105 @@ async function loadHome() {
     } finally {
         finishLoading();
     }
+}
+
+// ---- Introduction content: skills ----
+
+// Each document is one category, exactly as admin.js writes it: category
+// (string), items (string) and order (number). items is either one
+// "Skill | Description" per line or, in older documents, a comma-separated
+// list of names; the console page parsed it the same way.
+function parseSkillItems(value) {
+    const raw = typeof value === 'string' ? value : '';
+    if (raw.includes('|') || raw.includes('\n')) {
+        return raw.split('\n').map(l => l.trim()).filter(Boolean).map(line => {
+            const parts = line.split('|');
+            return { name: parts[0].trim(), desc: parts.slice(1).join('|').trim() };
+        }).filter(item => item.name || item.desc);
+    }
+    return raw.split(',').map(s => s.trim()).filter(Boolean).map(name => ({ name, desc: '' }));
+}
+
+const skillsBody = document.getElementById('skills-body');
+const skillsHeading = document.getElementById('skills-heading');
+
+// 'idle' until the view is first opened.
+const skills = { state: 'idle', categories: [], version: 0 };
+
+async function loadSkills() {
+    const version = ++skills.version; // a newer retry supersedes this load
+    skills.state = 'loading';
+    renderSkills();
+    try {
+        const snap = await getDocs(collection(db, 'skills'));
+        if (version !== skills.version) return;
+        const categories = snap.docs.map(s => {
+            const d = s.data();
+            return {
+                id: s.id,
+                category: text(d.category),
+                items: parseSkillItems(d.items),
+                order: Number(d.order) || 0,
+            };
+        });
+        // Client-side, by order, then category, then ID, like the records.
+        categories.sort((a, b) => {
+            if (a.order !== b.order) return a.order - b.order;
+            if (a.category !== b.category) return a.category < b.category ? -1 : 1;
+            return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
+        });
+        skills.categories = categories;
+        skills.state = 'ready';
+    } catch (err) {
+        if (version !== skills.version) return;
+        console.error('Error loading skills:', err);
+        skills.categories = [];
+        skills.state = 'error';
+    }
+    renderSkills();
+}
+
+function renderSkills() {
+    const hadFocus = skillsBody.contains(document.activeElement);
+    const parts = [];
+
+    if (skills.state === 'loading') {
+        skillsBody.setAttribute('aria-busy', 'true');
+        const sk = el('div', 'ws-prose');
+        sk.setAttribute('aria-hidden', 'true');
+        sk.append(el('p', 'ws-skeleton'), el('p', 'ws-skeleton ws-skeleton-short'));
+        parts.push(sk);
+    } else {
+        skillsBody.removeAttribute('aria-busy');
+    }
+
+    if (skills.state === 'error') {
+        parts.push(statusLine("Couldn't load skills.", loadSkills));
+    } else if (skills.state === 'ready' && !skills.categories.length) {
+        parts.push(el('p', 'ws-empty', 'No skills have been added yet.'));
+    } else if (skills.state === 'ready') {
+        skills.categories.forEach(c => {
+            const group = el('section', 'ws-skill-group');
+            group.appendChild(el('h2', 'ws-skill-heading', c.category || 'Untitled'));
+            if (c.items.length) {
+                const ul = el('ul', 'ws-skill-list');
+                c.items.forEach(item => {
+                    const li = el('li', 'ws-skill');
+                    if (item.name) li.appendChild(el('span', 'ws-skill-name', item.name));
+                    if (item.desc) li.appendChild(el('span', 'ws-skill-desc', item.desc));
+                    ul.appendChild(li);
+                });
+                group.appendChild(ul);
+            } else {
+                group.appendChild(el('p', 'ws-empty', 'Nothing listed in this category yet.'));
+            }
+            parts.push(group);
+        });
+    }
+
+    skillsBody.replaceChildren(...parts);
+    // e.g. "Try again" was pressed and has just been removed.
+    if (hadFocus) skillsHeading.focus({ preventScroll: true });
 }
 
 // ---- Records: projects and experiences ----
@@ -443,7 +558,7 @@ function normalizeExperience(id, d) {
 
 // Keyed by the hash route's first segment. `path` is the Firestore
 // collection. Sorted client-side by order, then name, then ID, as in
-// legacy.html: several documents share the same order value.
+// the retired console page: several documents share the same order value.
 const COLLECTIONS = {
     projects: {
         path: 'projects',
@@ -602,7 +717,7 @@ function renderNav(kind) {
 const recordView = document.getElementById('view-record');
 const resourcesContext = document.getElementById('ws-resources-context');
 
-// Pointer capability, as in legacy.html: playable builds need reliable
+// Pointer capability, as in the retired console page: playable builds need reliable
 // keyboard/mouse input and are not offered on touch-first devices.
 const canPlay = !window.matchMedia('(pointer: coarse)').matches;
 

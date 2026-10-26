@@ -51,15 +51,14 @@
                                     <path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1" />
                                 </svg>
                                 <span class="ws-nav-text">About</span></a></li>
-                        <li><a class="ws-nav-link ws-nav-link-static" href="legacy.html#skills">
+                        <li><a class="ws-nav-link ws-nav-link-static" href="#skills" data-route="skills">
                                 <svg class="ws-nav-icon" viewBox="0 0 24 24" width="16" height="16" fill="none"
                                     stroke="currentColor" stroke-width="1.75" stroke-linecap="round"
                                     stroke-linejoin="round" aria-hidden="true" focusable="false">
                                     <path d="m8 6-6 6 6 6" />
                                     <path d="m16 6 6 6-6 6" />
                                 </svg>
-                                <span class="ws-nav-text">Skills</span> <span
-                                    class="ws-nav-tag">classic</span></a></li>
+                                <span class="ws-nav-text">Skills</span></a></li>
                         <li><a class="ws-nav-link ws-nav-link-static" href="#contact" data-route="contact">
                                 <svg class="ws-nav-icon" viewBox="0 0 24 24" width="16" height="16" fill="none"
                                     stroke="currentColor" stroke-width="1.75" stroke-linecap="round"
@@ -86,10 +85,6 @@
                     </ul>
                 </div>
             </nav>
-
-            <div class="ws-sidebar-foot">
-                <a class="ws-nav-link ws-nav-link-muted" href="legacy.html">Classic console view</a>
-            </div>
         </div>
 
         <div class="ws-backdrop" id="ws-backdrop" hidden></div>
@@ -115,11 +110,10 @@
                     <!-- Introduction / About: siteContent/home. -->
                     <section class="ws-view" id="view-about" data-view="about" aria-labelledby="about-heading">
                         <div class="ws-hero">
-                            <picture class="ws-avatar">
-                                <source srcset="assets/avatar.webp" type="image/webp">
-                                <img src="assets/avatar.png" alt="Jaeshin Jung — pixel avatar" id="home-img"
+                            <div class="ws-avatar">
+                                <img src="assets/jaeshin-profile.jpg" alt="Jaeshin Jung profile photo" id="home-img"
                                     width="72" height="72">
-                            </picture>
+                            </div>
                             <div class="ws-hero-text">
                                 <p class="ws-eyebrow">Introduction</p>
                                 <h1 id="about-heading" class="ws-view-heading" tabindex="-1">
@@ -141,10 +135,20 @@
                             <ul class="ws-prompt-list" aria-labelledby="prompts-label">
                                 <li><a class="ws-prompt" href="#projects">What have you built?</a></li>
                                 <li><a class="ws-prompt" href="#experience">Where have you worked?</a></li>
-                                <li><a class="ws-prompt" href="legacy.html#skills">What do you work with?</a></li>
+                                <li><a class="ws-prompt" href="#skills">What do you work with?</a></li>
                                 <li><a class="ws-prompt" href="#contact">How can I reach you?</a></li>
                             </ul>
                         </div>
+                    </section>
+
+                    <!-- Introduction / Skills: the skills collection, one group
+                         per category. Filled in by workspace.js the first time
+                         the view is opened. -->
+                    <section class="ws-view" id="view-skills" data-view="skills" aria-labelledby="skills-heading"
+                        hidden>
+                        <p class="ws-eyebrow">Introduction</p>
+                        <h1 id="skills-heading" class="ws-view-heading" tabindex="-1">Skills</h1>
+                        <div id="skills-body"></div>
                     </section>
 
                     <!-- Introduction / Contact. -->
@@ -198,8 +202,7 @@
                     <section class="ws-view" id="view-record" data-view="record" aria-labelledby="record-heading"
                         hidden></section>
 
-                    <!-- Any hash that is neither a workspace route nor a legacy
-                         route redirected to legacy.html. -->
+                    <!-- Any hash that is not a workspace route. -->
                     <section class="ws-view" id="view-notfound" data-view="notfound"
                         aria-labelledby="notfound-heading" hidden>
                         <p class="ws-eyebrow">Not found</p>
@@ -224,10 +227,6 @@
                                     rel="noopener noreferrer">LinkedIn</a></li>
                             <li><a href="https://github.com/JaeshinJung" target="_blank"
                                     rel="noopener noreferrer">GitHub</a></li>
-                        </ul>
-                        <h3 class="ws-section-label">Also on this site</h3>
-                        <ul class="ws-resource-list">
-                            <li><a href="legacy.html">Classic console view</a></li>
                         </ul>
                     </div>
                 </aside>
