@@ -318,25 +318,12 @@ function statusLine(message, onRetry) {
 
 // ---- Introduction content: siteContent/home ----
 
-// The bundled photo in the markup is the default. Firestore still holds the
-// retired pixel avatar's URL (GitHub blob, raw, or local path); ignore any
-// URL naming avatar.png/.webp so it cannot replace the photo. Any other
-// http(s) URL is a deliberate custom photo and wins.
+// The bundled photo in the markup is the default; a valid http(s) URL saved
+// in admin replaces it.
 const DEFAULT_PROFILE_IMAGE = 'assets/jaeshin-profile.jpg';
-const RETIRED_AVATAR = /(?:^|\/)avatar\.(?:png|webp)$/i;
-
-function isRetiredAvatar(url) {
-    try {
-        const { pathname } = new URL(url, document.baseURI);
-        return RETIRED_AVATAR.test(decodeURIComponent(pathname));
-    } catch {
-        return false;
-    }
-}
 
 function setProfileImage(url) {
     const img = document.getElementById('home-img');
-    if (isRetiredAvatar(url)) return;
     const file = assetBasename(url);
     const src = file ? `assets/${encodeURIComponent(file)}` : url;
     if (!file && !isHttpUrl(url)) return;
@@ -356,14 +343,6 @@ const homeStatus = document.getElementById('home-status');
 // The same fallbacks the console page used when the document is missing.
 const FALLBACK_TITLE = 'Jaeshin Jung';
 const FALLBACK_SUBTITLE = 'CS Major · Game Design Minor at Texas A&M University';
-
-// The stored subtitle still opens with an older, ambiguous phrase. Rewrite
-// just that opening; anything after it, and any other subtitle, is kept.
-const OLD_SUBTITLE_OPENING = /^\s*CS\s*&\s*Game Design at Texas A&M(?: University)?/i;
-
-function normalizeSubtitle(subtitle) {
-    return subtitle.replace(OLD_SUBTITLE_OPENING, 'CS Major · Game Design Minor at Texas A&M University');
-}
 
 function showStatus(message, withRetry) {
     homeStatus.replaceChildren();
@@ -397,7 +376,7 @@ async function loadHome() {
         homeTitle.textContent = typeof data.heroTitle === 'string' && data.heroTitle.trim()
             ? data.heroTitle : FALLBACK_TITLE;
         homeSubtitle.textContent = typeof data.heroSubtitle === 'string' && data.heroSubtitle.trim()
-            ? normalizeSubtitle(data.heroSubtitle) : FALLBACK_SUBTITLE;
+            ? data.heroSubtitle : FALLBACK_SUBTITLE;
         if (typeof data.profileImageUrl === 'string' && data.profileImageUrl) {
             setProfileImage(data.profileImageUrl);
         }
