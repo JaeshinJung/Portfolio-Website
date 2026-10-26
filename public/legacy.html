@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Jaeshin Jung — Computer Science @ Texas A&M | Aspiring Game Developer. Portfolio showcasing C++, Unity, and game development projects.">
+    <meta name="robots" content="noindex">
+    <title>Jaeshin Jung | Portfolio (classic console)</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="container">
+
+        <!-- DS home menu: the hash-less landing screen, inside the same
+             dual-screen console frame as Projects. Four real links, so hash
+             navigation and keyboard focus work with no click handlers. -->
+        <div id="app-home" class="app-screen">
+            <div class="ds-console">
+                <div class="ds-row">
+                    <div class="ds-side ds-side-speaker" aria-hidden="true">
+                        <div class="ds-dot-row"><span class="ds-dot"></span><span class="ds-dot"></span><span class="ds-dot"></span></div>
+                        <div class="ds-dot-row"><span class="ds-dot"></span><span class="ds-dot"></span><span class="ds-dot"></span></div>
+                    </div>
+                    <div class="ds-screen ds-screen-top">
+                        <!-- HUD — avatar + name + tagline on one compact row. Only ever
+                             renders on the home screen: siteContent/home is fetched once,
+                             up front, regardless of which screen is showing. -->
+                        <div class="hud">
+                            <picture>
+                                <source srcset="assets/avatar.webp" type="image/webp">
+                                <img src="assets/avatar.png" alt="Jaeshin Jung — pixel avatar" class="hud-avatar" id="home-img">
+                            </picture>
+                            <div class="hud-text">
+                                <h1 id="home-title" class="loading-text">Loading...</h1>
+                                <p class="hud-subtitle loading-text" id="home-subtitle">Loading...</p>
+                            </div>
+                        </div>
+                        <h2>Select App</h2>
+                        <div class="ds-preview" id="home-preview">
+                            <p class="preview-hint">Select an app below.</p>
+                        </div>
+                    </div>
+                    <div class="ds-side ds-side-speaker" aria-hidden="true">
+                        <div class="ds-dot-row"><span class="ds-dot"></span><span class="ds-dot"></span><span class="ds-dot"></span></div>
+                        <div class="ds-dot-row"><span class="ds-dot"></span><span class="ds-dot"></span><span class="ds-dot"></span></div>
+                    </div>
+                </div>
+                <div class="ds-hinge" aria-hidden="true">
+                    <span class="ds-hinge-mic"></span>
+                    <span class="ds-hinge-slider"></span>
+                    <span class="ds-hinge-led"></span>
+                </div>
+                <div class="ds-row">
+                    <div class="ds-side ds-side-dpad" aria-hidden="true"></div>
+                    <div class="ds-screen ds-screen-bottom">
+                        <div class="ds-menu-list">
+                            <a href="#projects" class="ds-menu-icon"
+                                data-preview-desc="Seven playable game dev projects — browser demos, source links, and what I learned building each one.">Projects</a>
+                            <a href="#experience" class="ds-menu-icon"
+                                data-preview-desc="Work history and internships — the role, responsibilities, and results from each one.">Experience</a>
+                            <a href="#skills" class="ds-menu-icon"
+                                data-preview-desc="Technical skills by category, plus honors and awards.">Skills</a>
+                            <a href="#about" class="ds-menu-icon"
+                                data-preview-desc="Who I am, outside the project list.">About Me</a>
+                        </div>
+
+                        <!-- Icons are inline SVG, not an icon font: three glyphs are not worth a
+                             102 KB third-party stylesheet plus two ~130 KB webfonts. Each one is
+                             aria-hidden/focusable="false" because the link text beside it
+                             already names the destination. -->
+                        <div class="contact-links">
+                            <a href="https://mail.google.com/mail/?view=cm&to=jjshin2001@gmail.com" target="_blank"><svg
+                                    viewBox="0 0 512 512" aria-hidden="true" focusable="false">
+                                    <path
+                                        d="M48 64C21.5 64 0 85.5 0 112c0 15.1 7.1 29.3 19.2 38.4L236.8 313.6c11.4 8.5 27 8.5 38.4 0L492.8 150.4c12.1-9.1 19.2-23.3 19.2-38.4c0-26.5-21.5-48-48-48L48 64zM0 176L0 384c0 35.3 28.7 64 64 64l384 0c35.3 0 64-28.7 64-64l0-208L294.4 339.2c-22.8 17.1-54 17.1-76.8 0L0 176z" />
+                                </svg> Email</a>
+                            <a href="https://www.linkedin.com/in/jaeshin-jung-21a3a4341/" target="_blank"><svg
+                                    viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                    <path
+                                        d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+                                </svg> LinkedIn</a>
+                            <a href="https://github.com/JaeshinJung" target="_blank"><svg viewBox="0 0 24 24"
+                                    aria-hidden="true" focusable="false">
+                                    <path
+                                        d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" />
+                                </svg> GitHub</a>
+                        </div>
+                    </div>
+                    <div class="ds-side ds-side-buttons" aria-hidden="true">
+                        <span class="ds-face-btn ds-face-btn-top"></span>
+                        <span class="ds-face-btn ds-face-btn-left"></span>
+                        <span class="ds-face-btn ds-face-btn-right"></span>
+                        <span class="ds-face-btn ds-face-btn-bottom"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Projects app — the DS dual-screen cartridge picker. -->
+        <div id="app-projects" class="app-screen" hidden>
+            <button type="button" class="pixel-btn secondary btn-sm app-back">◀ Home</button>
+            <div class="ds-console">
+                <div class="ds-row">
+                    <div class="ds-side ds-side-speaker" aria-hidden="true">
+                        <div class="ds-dot-row"><span class="ds-dot"></span><span class="ds-dot"></span><span class="ds-dot"></span></div>
+                        <div class="ds-dot-row"><span class="ds-dot"></span><span class="ds-dot"></span><span class="ds-dot"></span></div>
+                    </div>
+                    <div class="ds-screen ds-screen-top">
+                        <p class="site-id">JAESHIN JUNG</p>
+                        <h2>Select Stage</h2>
+                        <div class="ds-preview" id="ds-preview">
+                            <p class="preview-hint">Select a cartridge below.</p>
+                        </div>
+                    </div>
+                    <div class="ds-side ds-side-speaker" aria-hidden="true">
+                        <div class="ds-dot-row"><span class="ds-dot"></span><span class="ds-dot"></span><span class="ds-dot"></span></div>
+                        <div class="ds-dot-row"><span class="ds-dot"></span><span class="ds-dot"></span><span class="ds-dot"></span></div>
+                    </div>
+                </div>
+                <div class="ds-hinge" aria-hidden="true">
+                    <span class="ds-hinge-mic"></span>
+                    <span class="ds-hinge-slider"></span>
+                    <span class="ds-hinge-led"></span>
+                </div>
+                <div class="ds-row">
+                    <div class="ds-side ds-side-dpad" aria-hidden="true"></div>
+                    <div class="ds-screen ds-screen-bottom">
+                        <div class="ds-cartridge-list" id="ds-cartridge-list">
+                            <p class="loading-text">Loading data...</p>
+                        </div>
+                        <div class="ds-slot" id="ds-slot" hidden></div>
+                    </div>
+                    <div class="ds-side ds-side-buttons" aria-hidden="true">
+                        <span class="ds-face-btn ds-face-btn-top"></span>
+                        <span class="ds-face-btn ds-face-btn-left"></span>
+                        <span class="ds-face-btn ds-face-btn-right"></span>
+                        <span class="ds-face-btn ds-face-btn-bottom"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Experience app — every entry always fully exposed, no click
+             required to reveal anything. -->
+        <div id="app-experience" class="app-screen" hidden>
+            <div class="console-strip">
+                <p class="site-id">JAESHIN JUNG</p>
+            </div>
+            <button type="button" class="pixel-btn secondary btn-sm app-back">◀ Home</button>
+            <h2>Experience</h2>
+            <div id="experience-list">
+                <p class="loading-text">Loading data...</p>
+            </div>
+        </div>
+
+        <!-- Skills app — same rule: the grid and Honors & Awards are always
+             fully exposed. Honors & Awards is static markup, not Firestore. -->
+        <div id="app-skills" class="app-screen" hidden>
+            <div class="console-strip">
+                <p class="site-id">JAESHIN JUNG</p>
+            </div>
+            <button type="button" class="pixel-btn secondary btn-sm app-back">◀ Home</button>
+            <section>
+                <h2>Technical Skills</h2>
+                <div id="skills-container">
+                    <h3 class="loading-text" style="grid-column: 1 / -1;">Loading Skills Data...</h3>
+                </div>
+            </section>
+
+            <section style="margin-top: 40px;">
+                <h2>Honors & Awards</h2>
+                <ul class="award-list">
+                    <li><strong>Dean's Honor Roll</strong> — Texas A&M Engineering (Fall 2025)</li>
+                    <li><strong>3rd Place</strong> — 2019 KSEA National Math Competition</li>
+                    <li><strong>Junior Leadership Award</strong> — NAKS (2020)</li>
+                </ul>
+            </section>
+        </div>
+
+        <!-- About app — text already fetched with the HUD, no extra request. -->
+        <div id="app-about" class="app-screen" hidden>
+            <div class="console-strip">
+                <p class="site-id">JAESHIN JUNG</p>
+            </div>
+            <button type="button" class="pixel-btn secondary btn-sm app-back">◀ Home</button>
+            <h2>About</h2>
+            <div class="about-text" id="home-about">
+                <p>Loading...</p>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { db } from './firebase-config.js';
+        import { escapeHtml } from './utils.js';
+        import { collection, getDocs, getDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const list = document.getElementById('ds-cartridge-list');
+        const slot = document.getElementById('ds-slot');
+        const preview = document.getElementById('ds-preview');
+
+        // Firestore stores every screenshot as an absolute GitHub blob URL even
+        // though the identical file already ships in public/assets/. Rewriting to
+        // the local path keeps the images on Hosting's CDN, takes a third-party
+        // origin off the critical path, and stops all seven breaking the day the
+        // repo goes private. Matched on the URL's basename, never on the title:
+        // Firestore says 'Horror School' while the file is HorroSchool.png.
+        const GITHUB_ASSET_URL = /^https:\/\/github\.com\/[^/]+\/[^/]+\/blob\/[^/]+\/public\/assets\/([^/?#]+)(?:[?#]|$)/;
+
+        // The file's own name, URL-decoded. null for anything that is not the
+        // expected blob shape, so an unrecognised URL is left exactly as
+        // Firestore holds it.
+        function assetBasename(url) {
+            const match = GITHUB_ASSET_URL.exec(url);
+            if (!match) return null;
+            try {
+                return decodeURIComponent(match[1]);
+            } catch {
+                return null; // malformed percent-escape
+            }
+        }
+
+        // The local path for a GitHub asset URL, or null if it is not one. No
+        // width/height hint goes with it: the screenshot's box is already
+        // reserved by .boss-hole's own percentage geometry, so measured page
+        // height is byte-identical with and without the attributes.
+        function localAsset(url) {
+            const file = assetBasename(url);
+            if (!file) return null;
+            return `assets/${encodeURIComponent(file)}`;
+        }
+
+        // Basenames that have a .webp sibling in public/assets. Listed, not
+        // derived: the page cannot stat the directory, and a <source> aimed at
+        // a file that is not there would cost a 404 on every card it renders.
+        // avatar, Console Shooting and IEEE-Tech are lossless WebP — smaller
+        // than both the PNG and a lossy encode; the rest are quality 85, whose
+        // mean error stays under 1/255 in the 362x204 box a card paints.
+        const WEBP_ASSETS = new Set([
+            'avatar.png', 'Console Shooting.png', 'Defusion Confusion.png',
+            'Dungeon Maze.png', 'Eraser Escape.png', 'HorroSchool.png',
+            'IEEE-Tech.png', "Jackson's Boba Beat.png",
+        ]);
+
+        // The local WebP for a GitHub asset URL, or null when there is none.
+        function webpAsset(url) {
+            const file = assetBasename(url);
+            if (!file || !WEBP_ASSETS.has(file)) return null;
+            return `assets/${encodeURIComponent(file.replace(/\.png$/, '.webp'))}`;
+        }
+
+        // Cartridge shell colors, keyed on the same basename assetBasename()
+        // already extracts — never on the title, for the identical reason
+        // assetBasename exists: Firestore's title strings do not match the
+        // repo's filenames ('Horror School' vs. HorroSchool.png). No entry
+        // (or a URL assetBasename can't parse) falls back to --surface in CSS.
+        const CARTRIDGE_COLORS = {
+            'Defusion Confusion.png': { body: '#700808' },
+            'Dungeon Maze.png': { body: '#5EE6A8' },
+            'Console Shooting.png': { body: '#101010', trim: '#D01010' },
+            'HorroSchool.png': { body: '#2A2620', trim: '#C9B38B' },
+            'Eraser Escape.png': { body: '#8C7F5A', trim: '#706C5E' },
+            "Jackson's Boba Beat.png": { body: '#5090F0' },
+            'IEEE-Tech.png': { body: '#107090' },
+        };
+
+        // The color pair for a project's screenshot URL, or null when the URL
+        // isn't a recognised GitHub asset blob or has no entry above.
+        function cartridgeColor(url) {
+            const file = url ? assetBasename(url) : null;
+            return (file && CARTRIDGE_COLORS[file]) || null;
+        }
+
+        // A <picture> keeps serving its <source> even after img.src is
+        // reassigned, so an onerror fallback that only rewrote src would
+        // re-select the very WebP that just failed. Dropping the <source>
+        // re-runs selection and leaves the img's own src the sole candidate.
+        function dropWebpSource(img) {
+            const parent = img.parentElement;
+            if (parent && parent.tagName === 'PICTURE') {
+                parent.querySelectorAll('source').forEach(s => s.remove());
+            }
+        }
+
+        // siteContent/home.profileImageUrl points at the GitHub copy of
+        // assets/avatar.png, which is 5.7 MB — more than all seven screenshots
+        // put together — to paint a 56x56 HUD box. The static markup already
+        // loaded the local copy, so assigning that URL fetched the same picture
+        // a second time, remotely, over a three-hop redirect chain. Rewrite to
+        // the local path, and when it already matches what the markup shipped,
+        // do not touch src at all so there is no second request of any kind.
+        function setProfileImage(url) {
+            const img = document.getElementById('home-img');
+            const file = assetBasename(url);
+            if (!file) {
+                dropWebpSource(img);
+                img.src = url;
+                return;
+            }
+            const src = `assets/${encodeURIComponent(file)}`;
+            if (new URL(src, document.baseURI).href === img.src) return;
+            // Past the early return the file is not the one the markup shipped,
+            // so the static <source> names the wrong picture: drop it.
+            dropWebpSource(img);
+            // Degrade to the URL Firestore holds if the local file is missing.
+            // { once: true }, so a fallback that also fails cannot loop.
+            img.addEventListener('error', () => { img.src = url; }, { once: true });
+            img.src = src;
+        }
+
+        // The HUD's title/subtitle start with .loading-text's blink, same as
+        // every other Firestore fetch on the site. Removed once, after the
+        // fetch settles either way, so the blink never survives past whichever
+        // of loadHome()'s three branches ran.
+        function stopHomeLoadingBlink() {
+            document.getElementById('home-title').classList.remove('loading-text');
+            document.getElementById('home-subtitle').classList.remove('loading-text');
+        }
+
+        async function loadHome() {
+            try {
+                const homeDoc = await getDoc(doc(db, 'siteContent', 'home'));
+                if (homeDoc.exists()) {
+                    const data = homeDoc.data();
+                    if (data.profileImageUrl) setProfileImage(data.profileImageUrl);
+                    if (data.heroTitle) document.getElementById('home-title').textContent = data.heroTitle;
+                    if (data.heroSubtitle) document.getElementById('home-subtitle').textContent = data.heroSubtitle;
+
+                    // Replace newlines with <br> to preserve typical multiline text
+                    if (data.aboutMeText) {
+                        const formattedText = data.aboutMeText.replace(/\n/g, '<br>');
+                        document.getElementById('home-about').innerHTML = `<p>${formattedText}</p>`;
+                    }
+                } else {
+                    document.getElementById('home-title').textContent = 'Jaeshin Jung';
+                    document.getElementById('home-subtitle').textContent = 'Computer Science @ Texas A&M University';
+                    document.getElementById('home-about').innerHTML = '<p>Computer Science major with a minor...</p>';
+                }
+            } catch (e) {
+                console.error("Error loading home:", e);
+                document.getElementById('home-title').textContent = 'Error Loading Data';
+            } finally {
+                stopHomeLoadingBlink();
+            }
+        }
+
+        // Excluded by input capability, not by width or user agent: a narrow
+        // desktop window must stay playable and a large tablet must not be,
+        // and the reason for excluding touch is unreliable input and low-end
+        // device performance, not bandwidth.
+        const canPlay = !window.matchMedia('(pointer: coarse)').matches;
+
+        // The Repository action, in one place: the card's button and the
+        // stage's repo entity are the same offer, so they must not drift —
+        // above all not the default message, which used to exist only here.
+        function repoAction(isPublic, url, privateMsg) {
+            if (isPublic && url) {
+                window.open(url, '_blank');
+            } else {
+                alert(privateMsg || 'Due to security regulations, the code is kept confidential.');
+            }
+        }
+
+        // The one live embed, if any: { embed, btn }.
+        let liveGame = null;
+
+        // The one inserted cartridge, if any: { btn }. Only one cartridge can
+        // be in the slot at a time, site-wide.
+        let liveCartridge = null;
+
+        function closeGame(restoreFocus) {
+            if (!liveGame) return;
+            const { embed, btn } = liveGame;
+            liveGame = null;
+            // about:blank BEFORE removal: that navigates the frame away and
+            // discards the loaded document with its wasm heap while the element
+            // is still in the tree. Removing the <iframe> outright leaves that
+            // to whenever the GC gets round to it.
+            const frame = embed.querySelector('iframe');
+            if (frame) frame.src = 'about:blank';
+            embed.remove();
+            btn.hidden = false;
+            if (restoreFocus) btn.focus();
+        }
+
+        function openGame(container, btn, url, title) {
+            closeGame(false); // one at a time
+
+            const embed = document.createElement('div');
+            embed.className = 'game-embed';
+            embed.tabIndex = -1;
+            embed.setAttribute('role', 'group');
+            embed.setAttribute('aria-label', `${title} — playable build`);
+
+            const frameBox = document.createElement('div');
+            frameBox.className = 'game-frame';
+
+            const placeholder = document.createElement('p');
+            placeholder.className = 'loading-text';
+            placeholder.textContent = 'Loading game...';
+
+            // Built with DOM APIs, not a template: escapeHtml() does not escape
+            // quotes, so a URL and a title must not go near an attribute here.
+            const frame = document.createElement('iframe');
+            frame.title = `${title} — playable build`;
+            frame.allow = 'autoplay; fullscreen; gamepad';
+            frame.allowFullscreen = true;
+            // No sandbox attribute: it would block the embed host's own scripts.
+            // The click is the user gesture, so audio autoplay is already
+            // permitted and needs no extra handling.
+            frame.src = url;
+
+            frameBox.append(placeholder, frame);
+
+            const close = document.createElement('button');
+            close.type = 'button';
+            close.className = 'pixel-btn secondary btn-sm game-close';
+            close.textContent = 'Close Game';
+            close.addEventListener('click', () => closeGame(true));
+
+            embed.append(frameBox, close);
+            container.appendChild(embed);
+            btn.hidden = true;
+            liveGame = { embed, btn };
+            embed.focus();
+        }
+
+        // A stage entity: a pixel creature that carries one action. The sprite
+        // is decoration for the label beside it, so alt is empty and the label
+        // is the accessible name. `tag` is 'a' for anything that navigates —
+        // the demo is a link, and a button that calls window.open would cost
+        // the middle-click, the context menu and the correct announcement.
+        // A null sprite renders the label alone: PLAY has no matching art yet.
+        function entity(tag, sprite, label) {
+            const el = document.createElement(tag);
+            if (tag === 'button') el.type = 'button';
+            el.className = 'entity';
+            if (sprite) {
+                const img = document.createElement('img');
+                img.src = `assets/sprites/${sprite}.png`;
+                img.alt = '';
+                img.width = 68;
+                img.height = 68;
+                el.appendChild(img);
+            }
+            const text = document.createElement('span');
+            text.textContent = label;
+            el.appendChild(text);
+            return el;
+        }
+
+        // One <li> per entry, as textContent: every string here is authored by
+        // hand in Firestore and nothing about it is derived from the repo.
+        function bulletList(items) {
+            const ul = document.createElement('ul');
+            items.forEach(item => {
+                const li = document.createElement('li');
+                li.textContent = item;
+                ul.appendChild(li);
+            });
+            return ul;
+        }
+
+        // The top screen: always visible, no click required. Replaces
+        // #ds-preview's content with the hovered/focused cartridge's
+        // screenshot, title and description — a light DOM swap, never the
+        // heavier entities/panels the bottom screen builds on insert.
+        function previewCartridge(d) {
+            const title = d.title || 'Untitled';
+
+            // The screenshot goes BEHIND the frame's transparent hole, which
+            // is off-centre; .boss-hole holds the geometry.
+            const boss = document.createElement('div');
+            boss.className = 'boss';
+            if (d.imageUrl) {
+                const hole = document.createElement('div');
+                hole.className = 'boss-hole';
+                const shot = document.createElement('img');
+                const local = localAsset(d.imageUrl);
+                const webp = local ? webpAsset(d.imageUrl) : null;
+                shot.alt = `${title} — screenshot`;
+                if (local) shot.addEventListener('error', () => { dropWebpSource(shot); shot.src = d.imageUrl; }, { once: true });
+                if (webp) {
+                    // Source first, src last: setting src re-runs <picture>
+                    // selection, so the WebP is the only file ever requested.
+                    const pic = document.createElement('picture');
+                    const source = document.createElement('source');
+                    source.srcset = webp;
+                    source.type = 'image/webp';
+                    pic.append(source, shot);
+                    hole.appendChild(pic);
+                } else {
+                    hole.appendChild(shot);
+                }
+                shot.src = local || d.imageUrl;
+                boss.appendChild(hole);
+            }
+            const art = document.createElement('img');
+            art.className = 'boss-art';
+            art.src = 'assets/sprites/boss-frame.png';
+            art.alt = ''; // ornament around the screenshot, not information
+            art.width = 196;
+            art.height = 132;
+            boss.appendChild(art);
+
+            const heading = document.createElement('h3');
+            heading.className = 'preview-title';
+            heading.textContent = title;
+
+            preview.innerHTML = '';
+            preview.append(boss, heading);
+
+            // Reuses .stage-desc: the whole, never-clamped description box the
+            // stage interior already had. No entity moves focus here anymore —
+            // this screen has nothing to click, it is just always visible.
+            if (d.description) {
+                const desc = document.createElement('div');
+                desc.className = 'stage-desc';
+                const body = document.createElement('p');
+                body.textContent = d.description;
+                desc.appendChild(body);
+                preview.appendChild(desc);
+            }
+        }
+
+        // Empties and hides the bottom screen's slot, shows the cartridge
+        // list again and hands focus back to the cartridge that was inserted.
+        function ejectCartridge(restoreFocus) {
+            if (!liveCartridge) return;
+            const { btn } = liveCartridge;
+            closeGame(false); // the embed lives inside the slot being cleared
+            liveCartridge = null;
+            slot.hidden = true;
+            slot.classList.remove('is-visible');
+            slot.innerHTML = '';
+            list.hidden = false;
+            if (restoreFocus) btn.focus();
+        }
+
+        // "Plugs in" a cartridge: builds its entities (Tech Stack/Role/
+        // Learned/Play/Repository/Demo Video) and disclosure panels into
+        // #ds-slot and swaps it in for the cartridge list. The screenshot and
+        // description are not rebuilt here — the top screen already shows
+        // them. `n` only names disclosure panel ids uniquely per cartridge.
+        function insertCartridge(d, btn, n) {
+            ejectCartridge(false); // never more than one cartridge inserted
+
+            const title = d.title || 'Untitled';
+
+            const slotContent = document.createElement('div');
+            slotContent.className = 'cartridge-content';
+            slotContent.tabIndex = -1;
+            slotContent.setAttribute('role', 'group');
+            slotContent.setAttribute('aria-label', `${title} — controls`);
+
+            const entities = document.createElement('div');
+            entities.className = 'entities';
+
+            // Tech Stack, Role and Learned each hide behind their own entity.
+            // One panel is open at a time: three boxes at once would push the
+            // close button off a phone screen, and the row is a menu, not a
+            // dump. Fields the document does not carry produce no entity, no
+            // panel and no sprite request at all.
+            const panels = document.createElement('div');
+            panels.className = 'stage-panels';
+            const toggles = []; // every [button, panel] pair built below
+
+            function closePanels() {
+                toggles.forEach(([b, p]) => {
+                    p.hidden = true;
+                    b.setAttribute('aria-expanded', 'false');
+                });
+            }
+
+            // `key` only names the panel's id; ids are per-card because `n` is,
+            // even though one open stage site-wide already guarantees it. `cls`
+            // is an extra class for a panel that needs more than the shared box.
+            function disclosure(sprite, label, key, content, cls) {
+                const panel = document.createElement('div');
+                panel.className = cls ? `stage-panel ${cls}` : 'stage-panel';
+                panel.id = `stage-panel-${key}-${n}`;
+                panel.hidden = true;
+                panel.tabIndex = -1;
+                panel.setAttribute('role', 'group');
+                panel.setAttribute('aria-label', `${title} — ${label}`);
+                panel.appendChild(content);
+
+                const toggle = entity('button', sprite, label);
+                toggle.setAttribute('aria-expanded', 'false');
+                toggle.setAttribute('aria-controls', panel.id);
+                toggle.addEventListener('click', () => {
+                    // Read before closing: hidden here means this click opens.
+                    const opening = panel.hidden;
+                    closePanels();
+                    if (opening) {
+                        panel.hidden = false;
+                        toggle.setAttribute('aria-expanded', 'true');
+                        panel.focus();
+                    }
+                });
+
+                toggles.push([toggle, panel]);
+                entities.appendChild(toggle);
+                panels.appendChild(panel);
+            }
+
+            if (Array.isArray(d.stack) && d.stack.length > 0) {
+                disclosure('entity-stack', 'Tech Stack', 'stack', bulletList(d.stack));
+            }
+
+            // .stage-prose, so the paragraph breaks someone typed into the
+            // textarea survive as paragraph breaks. Role only: the description
+            // is the same box but keeps rendering as one flowing paragraph.
+            if (typeof d.role === 'string' && d.role.trim()) {
+                const prose = document.createElement('p');
+                prose.textContent = d.role;
+                disclosure('entity-role', 'Role', 'role', prose, 'stage-prose');
+            }
+
+            if (Array.isArray(d.learned) && d.learned.length > 0) {
+                disclosure('entity-learned', 'Learned', 'learned', bulletList(d.learned));
+            }
+
+            // Play has nowhere else to live now that the card grid is gone:
+            // the entity itself is the button openGame() hides/restores.
+            if (d.playUrl && canPlay) {
+                const enter = entity('button', null, 'Play');
+                enter.addEventListener('click', () => openGame(slotContent, enter, d.playUrl, title));
+                entities.appendChild(enter);
+            }
+
+            // Always offered, exactly like the card's button: a repository that
+            // is not public is not missing data, it is the confidentiality note.
+            const repo = entity('button', 'entity-repo', 'Repository');
+            repo.addEventListener('click', () => repoAction(d.isRepoPublic !== false, d.repoUrl, d.privateMessage));
+            entities.appendChild(repo);
+
+            if (d.demoUrl) {
+                const demo = entity('a', 'entity-demo', 'Demo Video');
+                demo.href = d.demoUrl;
+                demo.target = '_blank';
+                entities.appendChild(demo);
+            }
+
+            const eject = document.createElement('button');
+            eject.type = 'button';
+            eject.className = 'pixel-btn secondary btn-sm cartridge-eject';
+            eject.textContent = 'Eject';
+            eject.addEventListener('click', () => ejectCartridge(true));
+
+            slotContent.appendChild(entities);
+            // No disclosure means no container: an empty box is still a box.
+            if (toggles.length) slotContent.appendChild(panels);
+            slotContent.appendChild(eject);
+
+            slot.innerHTML = '';
+            slot.appendChild(slotContent);
+            slot.hidden = false;
+            list.hidden = true;
+            // Reflow between removing and re-adding the class, so the browser
+            // re-applies the "just inserted" starting state before transitioning
+            // out of it — without this the insert never animates.
+            slot.classList.remove('is-visible');
+            void slot.offsetWidth;
+            slot.classList.add('is-visible');
+
+            liveCartridge = { btn };
+            slotContent.focus();
+        }
+
+        document.addEventListener('keydown', e => {
+            if (e.key !== 'Escape') return;
+            // Closes the embed first, then the cartridge itself, so the
+            // preview stays put and only the bottom screen returns to the list.
+            closeGame(true);
+            ejectCartridge(true);
+        });
+
+        // Fetched once, the first time the Projects app is opened — the Home
+        // menu itself must cost zero Firestore reads.
+        let projectsLoaded = false;
+
+        async function loadProjects() {
+            if (projectsLoaded) return;
+            projectsLoaded = true;
+            try {
+                const snapshot = await getDocs(collection(db, 'projects'));
+
+                if (snapshot.empty) {
+                    list.innerHTML = '<p class="empty-state">No projects yet. Add entries from the admin panel.</p>';
+                    return;
+                }
+
+                // Sort client-side, not with orderBy(): the 'order' field has
+                // duplicate values, so ordering on it alone is nondeterministic,
+                // and a second orderBy would need a Firestore composite index.
+                const projects = snapshot.docs.map(d => d.data());
+                projects.sort((a, b) => {
+                    const orderA = Number(a.order) || 0;
+                    const orderB = Number(b.order) || 0;
+                    if (orderA !== orderB) return orderA - orderB;
+                    const titleA = a.title || '';
+                    const titleB = b.title || '';
+                    if (titleA < titleB) return -1;
+                    if (titleA > titleB) return 1;
+                    return 0;
+                });
+
+                list.innerHTML = '';
+                projects.forEach((d, i) => {
+                    const n = i + 1;
+                    const title = escapeHtml(d.title || 'Untitled');
+
+                    // Body/trim hex as custom properties, or no inline style at
+                    // all — the shell then falls back to CSS's own
+                    // --surface-2/--line-strong default.
+                    const color = d.imageUrl ? cartridgeColor(d.imageUrl) : null;
+                    const shellStyle = color
+                        ? `--cartridge-body:${color.body};${color.trim ? `--cartridge-trim:${color.trim};` : ''}`
+                        : '';
+
+                    // The button's text content — the label span, nothing in the
+                    // aria-hidden shell — is its whole accessible name. Color
+                    // never touches the label, so there is no contrast to check.
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'cartridge';
+                    btn.innerHTML = `
+                        <span class="cartridge-shell" aria-hidden="true" style="${shellStyle}"></span>
+                        <span class="cartridge-label">${title}</span>
+                    `;
+
+                    // focus/mouseenter drive the top screen with no click
+                    // required; click also plugs the cartridge into the bottom
+                    // screen. previewCartridge() is called again on click
+                    // because Safari does not focus a <button> on click.
+                    btn.addEventListener('mouseenter', () => previewCartridge(d));
+                    btn.addEventListener('focus', () => previewCartridge(d));
+                    btn.addEventListener('click', () => {
+                        previewCartridge(d);
+                        insertCartridge(d, btn, n);
+                    });
+
+                    list.appendChild(btn);
+                });
+            } catch (err) {
+                console.error('Firestore error:', err);
+                list.innerHTML = '<p class="empty-state">Failed to load projects.</p>';
+            }
+        }
+
+        // ---- Experience app: identical logic to the former experience.html,
+        // fetched only the first time #experience is opened. ----
+        const experienceContainer = document.getElementById('experience-list');
+        let experiencesLoaded = false;
+
+        async function loadExperiences() {
+            if (experiencesLoaded) return;
+            experiencesLoaded = true;
+            try {
+                const snapshot = await getDocs(collection(db, 'experiences'));
+
+                if (snapshot.empty) {
+                    experienceContainer.innerHTML = '<p class="empty-state">No experience data yet. Add entries from the admin panel.</p>';
+                    return;
+                }
+
+                // Sort client-side, not with orderBy(): both documents carry
+                // order: 0, so ordering on it alone is nondeterministic, and a
+                // second orderBy would need a Firestore composite index. Same
+                // fix as the stage grid.
+                const experiences = snapshot.docs.map(d => d.data());
+                experiences.sort((a, b) => {
+                    const orderA = Number(a.order) || 0;
+                    const orderB = Number(b.order) || 0;
+                    if (orderA !== orderB) return orderA - orderB;
+                    const roleA = a.role || '';
+                    const roleB = b.role || '';
+                    if (roleA < roleB) return -1;
+                    if (roleA > roleB) return 1;
+                    return 0;
+                });
+
+                experienceContainer.innerHTML = '';
+                experiences.forEach(d => {
+                    const achievementsHTML = (d.achievements || [])
+                        .map(a => `<li>${escapeHtml(a)}</li>`)
+                        .join('');
+
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.innerHTML = `
+                        <h3>${escapeHtml(d.role || '')}</h3>
+                        <p class="org">${escapeHtml(d.company || '')} | ${escapeHtml(d.location || '')}</p>
+                        <p class="date">${escapeHtml(d.dateRange || '')}</p>
+                        <ul>${achievementsHTML}</ul>
+                    `;
+                    experienceContainer.appendChild(card);
+                });
+            } catch (err) {
+                console.error('Firestore error:', err);
+                experienceContainer.innerHTML = '<p class="empty-state">Failed to load experiences.</p>';
+            }
+        }
+
+        // ---- Skills app: identical logic to the former skills-awards.html,
+        // fetched only the first time #skills is opened. ----
+        const skillsContainer = document.getElementById('skills-container');
+        let skillsLoaded = false;
+
+        async function loadSkills() {
+            if (skillsLoaded) return;
+            skillsLoaded = true;
+            try {
+                const snap = await getDocs(collection(db, 'skills'));
+
+                if (snap.empty) {
+                    skillsContainer.innerHTML = '<p>No technical skills entries yet.</p>';
+                    return;
+                }
+
+                // Sort client-side, not with orderBy(): the same fix the
+                // stage grid needed. These four categories do currently hold
+                // distinct order values, so this is the latent case rather
+                // than the live one — the tiebreaker keeps it deterministic
+                // the first time two of them collide.
+                const skills = snap.docs.map(d => d.data());
+                skills.sort((a, b) => {
+                    const orderA = Number(a.order) || 0;
+                    const orderB = Number(b.order) || 0;
+                    if (orderA !== orderB) return orderA - orderB;
+                    const catA = a.category || '';
+                    const catB = b.category || '';
+                    if (catA < catB) return -1;
+                    if (catA > catB) return 1;
+                    return 0;
+                });
+
+                skillsContainer.innerHTML = '';
+                skills.forEach(d => {
+                    const itemsStr = d.items || '';
+
+                    // Parse multiline string or fallback to comma-split
+                    let itemsList = [];
+                    if (itemsStr.includes('|') || itemsStr.includes('\n')) {
+                        // modern format: Skill | Description
+                        itemsList = itemsStr.split('\n').map(l => l.trim()).filter(Boolean).map(line => {
+                            const parts = line.split('|');
+                            return {
+                                name: parts[0] ? parts[0].trim() : '',
+                                desc: parts.length > 1 ? parts.slice(1).join('|').trim() : ''
+                            };
+                        });
+                    } else {
+                        // legacy comma format
+                        itemsList = itemsStr.split(',').map(s => s.trim()).filter(Boolean).map(name => ({
+                            name: name, desc: ''
+                        }));
+                    }
+
+                    const cardsHtml = itemsList
+                        .map(item => `
+                            <div class="skill-level-card">
+                                <div class="skill-name">${escapeHtml(item.name)}</div>
+                                ${item.desc ? `<div class="skill-desc">${escapeHtml(item.desc)}</div>` : ''}
+                            </div>
+                        `)
+                        .join('');
+
+                    skillsContainer.innerHTML += `
+                        <div class="level-1-section">
+                            <h2 class="level-1-header">${escapeHtml(d.category || 'Untitled')}</h2>
+                            <div class="level-2-grid">${cardsHtml}</div>
+                        </div>
+                    `;
+                });
+            } catch (e) {
+                console.error("Error loading skills:", e);
+                skillsContainer.innerHTML = '<p>Error loading skills data.</p>';
+            }
+        }
+
+        // ---- Home menu: the console's top screen previews whichever app
+        // icon is hovered/focused, same "no click required" pattern as
+        // previewCartridge() above but for the four home menu links. ----
+        const homePreview = document.getElementById('home-preview');
+
+        function previewApp(title, desc) {
+            const heading = document.createElement('h3');
+            heading.className = 'preview-title';
+            heading.textContent = title;
+
+            const descBox = document.createElement('div');
+            descBox.className = 'stage-desc';
+            const body = document.createElement('p');
+            body.textContent = desc;
+            descBox.appendChild(body);
+
+            homePreview.innerHTML = '';
+            homePreview.append(heading, descBox);
+        }
+
+        document.querySelectorAll('#app-home .ds-menu-icon').forEach(a => {
+            const title = a.textContent.trim();
+            const desc = a.dataset.previewDesc;
+            a.addEventListener('mouseenter', () => previewApp(title, desc));
+            a.addEventListener('focus', () => previewApp(title, desc));
+        });
+
+        // ---- Hash router: 4 named routes, or none (the DS home menu). ----
+        const routes = ['projects', 'experience', 'skills', 'about'];
+        const screens = {
+            home: document.getElementById('app-home'),
+            projects: document.getElementById('app-projects'),
+            experience: document.getElementById('app-experience'),
+            skills: document.getElementById('app-skills'),
+            about: document.getElementById('app-about'),
+        };
+
+        function currentRoute() {
+            const hash = location.hash.slice(1);
+            return routes.includes(hash) ? hash : 'home';
+        }
+
+        function render() {
+            const route = currentRoute();
+            for (const [name, el] of Object.entries(screens)) {
+                el.hidden = name !== route;
+            }
+            // Each app is fetched the first time it is opened, never from the
+            // home menu — loadProjects/loadExperiences/loadSkills each cache
+            // on their own *Loaded flag, so re-entering a route re-fetches
+            // nothing.
+            if (route === 'projects') loadProjects();
+            if (route === 'experience') loadExperiences();
+            if (route === 'skills') loadSkills();
+        }
+
+        window.addEventListener('hashchange', render);
+
+        // Explicit return-to-home-menu control; does not touch Escape's
+        // existing meaning (close embed, then eject cartridge).
+        document.querySelectorAll('.app-back').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const leavingRoute = currentRoute();
+                location.hash = '';
+                // hashchange (and its render()) fires asynchronously, but a
+                // hidden element's descendants aren't focusable — call
+                // render() here so #app-home is un-hidden before we focus
+                // into it. The hashchange listener will re-run render()
+                // afterward too; that's a harmless no-op.
+                render();
+                const target = document.querySelector(`.ds-menu-icon[href="#${leavingRoute}"]`)
+                    || document.querySelector('.ds-menu-icon');
+                if (target) target.focus();
+            });
+        });
+
+        loadHome();
+        render();
+    </script>
+</body>
+
+</html>
