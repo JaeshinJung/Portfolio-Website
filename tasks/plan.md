@@ -1,8 +1,19 @@
 # Conversation-style portfolio implementation plan
 
-Status: Stage 1 (Introduction vertical slice) implemented, awaiting browser verification, desktop/mobile screenshots and user approval. Stages 2-4 not started. Not committed.
+Status: Stage 1 approved and committed (b2d4df6). Stage 2 (projects + experience records and all sidebar icons) implemented, browser-verified and approved by user for commit. Skills remains on legacy.html; stage 4 not started.
 
 Brand name: Jae (confirmed by user).
+
+### Stage 2 notes
+- Scope, per user instruction: projects AND experience records in this slice (experience pulled forward from stage 3). Skills stays a legacy.html#skills link. Files touched: public/index.html, public/workspace.js, public/workspace.css, task docs.
+- Sidebar Projects and Experience groups list every Firestore record directly (no "All projects" entry). Projects show `title`; Experience shows `role` with `company` beneath. Order: `order`, then name, then document ID (client-side, as legacy.html; several docs share `order`).
+- Routes: #projects/<docId> and #experience/<docId> (ID URI-encoded). Bare #projects / #experience (old console links, intro prompts) replaceState to the first record once loaded, so Back is not trapped. Unknown or malformed IDs show a "This project/role isn't here" state with a link to the first record. #skills still forwards to legacy.html.
+- Project view (conversation-style turns; question bubbles are section headings, answers are Firestore fields only): What is it? (screenshot from `imageUrl` mapped to bundled assets/WebP, + `description`), What was your role? (`role`), What did you learn? (`learned`), Can I try it? (`playUrl`, https only, iframe loaded on click, fine-pointer only; touch shows a note). Missing fields are omitted.
+- Project resources card: Source code (`repoUrl`, http/https only) when `isRepoPublic !== false`; otherwise "Source code is private" + `privateMessage` (admin default text). Demo video (`demoUrl`). Built with (`stack` chips).
+- Experience view: `role` heading, `company` lede, `dateRange` / `location` meta, What did you work on? (`achievements`). Resources: Company / Location / Dates.
+- States: sidebar lists and the record view each show loading, empty, and error with Try again (re-fetch). Focus is kept when lists/views rebuild under the keyboard. Game iframes are blanked before removal on navigation.
+- No Firestore writes, no new fields, no dependencies.
+- Codex completed syntax, browser and 1440/390 screenshot verification; see stage2-review.md. User approved commit including folder, briefcase, About, Skills and Contact icons.
 
 ### Stage 1 notes
 - public/index.html is now the workspace shell; public/workspace.css and public/workspace.js are new and standalone (style.css is not loaded by the workspace, so admin and the console page are unaffected).

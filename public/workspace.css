@@ -221,6 +221,93 @@ body.ws {
     line-height: 18px;
 }
 
+/* Project and experience links: icon column beside the text column; long
+   titles wrap, and experience adds the company on a second line under the
+   role. */
+.ws-nav-link-record {
+    display: grid;
+    grid-template-columns: 16px minmax(0, 1fr);
+    align-content: center;
+    align-items: start;
+    column-gap: 8px;
+    row-gap: 0;
+    line-height: 1.35;
+}
+
+/* 14px x 1.35 line box is ~19px; nudge the 16px icon onto its centre. */
+.ws-nav-icon {
+    grid-column: 1;
+    grid-row: 1;
+    margin-top: 1.5px;
+    color: var(--ws-muted);
+}
+
+/* Beat the generic `.ws svg` 18px size so icons match their 16px column. */
+.ws .ws-nav-icon {
+    width: 16px;
+    height: 16px;
+}
+
+.ws-nav-link:hover .ws-nav-icon,
+.ws-nav-link[aria-current="page"] .ws-nav-icon {
+    color: var(--ws-text);
+}
+
+.ws-nav-text {
+    grid-column: 2;
+    overflow-wrap: anywhere;
+}
+
+/* Static Introduction links: icon, label, then any tag pushed to the end.
+   Flex centring already aligns the icon, so drop the grid nudge. */
+.ws-nav-link-static {
+    justify-content: flex-start;
+}
+
+.ws-nav-link-static .ws-nav-icon {
+    margin-top: 0;
+}
+
+.ws-nav-link-static .ws-nav-text {
+    flex: 1;
+    min-width: 0;
+}
+
+.ws-nav-sub {
+    grid-column: 2;
+    color: var(--ws-muted);
+    font-size: 12px;
+    overflow-wrap: anywhere;
+}
+
+.ws-nav-label:focus {
+    outline: none;
+}
+
+/* Loading / empty / error line inside a sidebar list. */
+.ws-nav-note {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    min-height: 34px;
+    padding: 6px 8px;
+    color: var(--ws-muted);
+    font-size: 13px;
+}
+
+.ws-sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+}
+
 .ws-sidebar-foot {
     padding: 10px 12px 14px;
     border-top: 1px solid var(--ws-line);
@@ -421,6 +508,11 @@ body.ws {
     background: var(--ws-surface);
 }
 
+.ws-text-btn-sm {
+    padding: 2px 8px;
+    font-size: 13px;
+}
+
 .ws-section-label {
     margin: 0 0 10px;
     color: var(--ws-muted);
@@ -509,6 +601,95 @@ body.ws {
     overflow-wrap: anywhere;
 }
 
+/* ---- Record view: a project or an experience entry ---- */
+
+.ws-record-head {
+    margin-bottom: 8px;
+}
+
+.ws-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 16px;
+    margin: 8px 0 0;
+    color: var(--ws-muted);
+    font-size: 14px;
+}
+
+/* One exchange: the reader's question as a right-aligned bubble, then the
+   authored answer at full column width. */
+.ws-turn {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 36px;
+}
+
+.ws-turn-q {
+    align-self: flex-end;
+    max-width: 85%;
+    margin: 0;
+    padding: 9px 16px;
+    border-radius: 18px;
+    background: var(--ws-surface-hover);
+    color: var(--ws-text);
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 1.45;
+}
+
+.ws-turn-a {
+    min-width: 0;
+    color: var(--ws-text-soft);
+    font-size: 17px;
+    line-height: 1.75;
+}
+
+.ws-turn-a .ws-prose p:last-child {
+    margin-bottom: 0;
+}
+
+.ws-list {
+    margin: 0;
+    padding-left: 1.25em;
+}
+
+.ws-list li+li {
+    margin-top: 0.5em;
+}
+
+.ws-figure {
+    margin: 0 0 20px;
+}
+
+.ws-figure img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border: 1px solid var(--ws-line);
+    border-radius: var(--ws-radius);
+    background: var(--ws-surface);
+}
+
+.ws-play {
+    display: grid;
+    justify-items: start;
+    gap: 12px;
+}
+
+.ws-play .ws-empty {
+    margin: 0;
+}
+
+.ws-play-frame {
+    display: block;
+    width: 100%;
+    aspect-ratio: 960 / 600;
+    border: 1px solid var(--ws-line);
+    border-radius: var(--ws-radius);
+    background: #000;
+}
+
 /* ---- Resources card ---- */
 
 .ws-card {
@@ -547,6 +728,66 @@ body.ws {
 .ws-resource-list a:hover {
     background: var(--ws-surface-hover);
     color: var(--ws-text);
+}
+
+/* Record resources: a link label with its host (or the private-repo note)
+   underneath. */
+.ws-resource-name,
+.ws-resource-host {
+    display: block;
+    overflow-wrap: anywhere;
+}
+
+.ws-resource-host {
+    color: var(--ws-muted);
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.ws-resource-note {
+    padding: 6px 0;
+    color: var(--ws-text-soft);
+    font-size: 14px;
+}
+
+.ws-chip-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    list-style: none;
+    margin: 0 0 16px;
+    padding: 0;
+}
+
+.ws-chip {
+    padding: 1px 10px;
+    border: 1px solid var(--ws-line-strong);
+    border-radius: 999px;
+    color: var(--ws-text-soft);
+    font-size: 13px;
+    line-height: 22px;
+}
+
+.ws-facts {
+    margin: 0 0 16px;
+    font-size: 14px;
+}
+
+.ws-facts dt {
+    color: var(--ws-muted);
+    font-size: 12px;
+}
+
+.ws-facts dd {
+    margin: 0 0 8px;
+    color: var(--ws-text-soft);
+    overflow-wrap: anywhere;
+}
+
+#ws-resources-context {
+    padding-bottom: 4px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid var(--ws-line);
 }
 
 /* Wide enough for sidebar + reading column + resources side by side. */
@@ -625,8 +866,17 @@ body.ws {
     }
 
     .ws-prose,
-    .ws-lede {
+    .ws-lede,
+    .ws-turn-a {
         font-size: 16px;
+    }
+
+    .ws-turn {
+        margin-top: 28px;
+    }
+
+    .ws-turn-q {
+        max-width: 92%;
     }
 
     .ws-prompts {
