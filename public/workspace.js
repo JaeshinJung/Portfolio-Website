@@ -245,8 +245,8 @@ drawerQuery.addEventListener('change', e => {
 // ---- Shared content helpers ----
 
 // Firestore stores the avatar and every project screenshot as a GitHub blob
-// URL for a file that already ships in public/assets/ (see the retired
-// console page, legacy.html in git history). Serve the local copy instead.
+// URL for a file that already ships in public/assets/. Serve the local copy
+// instead.
 const GITHUB_ASSET_URL = /^https:\/\/github\.com\/[^/]+\/[^/]+\/blob\/[^/]+\/public\/assets\/([^/?#]+)(?:[?#]|$)/;
 
 function assetBasename(url) {
