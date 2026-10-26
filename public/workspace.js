@@ -44,12 +44,14 @@ function externalUrl(value, protocols = ['https:', 'http:']) {
 // Hash routes the workspace renders itself. `group` and `label` feed the
 // header breadcrumb and the document title.
 const VIEWS = {
+    start: { group: 'Jae', label: 'Start here' },
     about: { group: 'Introduction', label: 'About' },
     skills: { group: 'Introduction', label: 'Skills' },
     contact: { group: 'Introduction', label: 'Contact' },
 };
 
-const DEFAULT_ROUTE = 'about';
+// No hash opens Start here.
+const DEFAULT_ROUTE = 'start';
 
 function currentRoute() {
     // Accepts both #about and #/about.
@@ -66,7 +68,7 @@ function hrefFor(kind, id) {
     return `#${routeKey(kind, id)}`;
 }
 
-// { view: 'about' | 'skills' | 'contact' | 'notfound' } or { view: 'record', kind, id }.
+// { view: 'start' | 'about' | 'skills' | 'contact' | 'notfound' } or { view: 'record', kind, id }.
 // id is null for a bare #projects / #experience.
 function parseRoute(raw) {
     // Own properties only, so #constructor, #toString etc. are not mistaken
@@ -88,6 +90,8 @@ function parseRoute(raw) {
 const crumbGroup = document.getElementById('ws-crumb-group');
 const crumbPage = document.getElementById('ws-crumb-page');
 const views = document.querySelectorAll('.ws-view');
+const content = document.getElementById('ws-content');
+const resources = document.getElementById('ws-resources');
 
 function render({ moveFocus }) {
     const route = parseRoute(currentRoute());
@@ -106,6 +110,11 @@ function render({ moveFocus }) {
 
     const name = route.view;
     views.forEach(v => { v.hidden = v.dataset.view !== name; });
+
+    // Start here is a single centred column: no Resources card.
+    const isStart = name === 'start';
+    content.classList.toggle('ws-content-start', isStart);
+    resources.hidden = isStart;
 
     let meta;
     if (name === 'record') {
@@ -227,12 +236,14 @@ sidebar.addEventListener('keydown', e => {
 });
 
 // Choosing a workspace link closes the drawer; render() then moves focus to
-// the new view's heading. Same-page links fire no hashchange, so focus the
-// heading here.
+// the new view's heading. Same-page links (e.g. the logo or Start here while
+// already on #start) fire no hashchange, so focus the heading here. Compared
+// against the literal hash, not currentRoute(): with no hash at all, a click
+// on #start does change the hash and render() runs from hashchange.
 sidebar.addEventListener('click', e => {
     const link = e.target.closest('a[href^="#"]');
-    if (!link || !drawerOpen) return;
-    const sameRoute = link.getAttribute('href').replace(/^#\/?/, '') === currentRoute();
+    if (!link) return;
+    const sameRoute = link.getAttribute('href').replace(/^#\/?/, '') === location.hash.replace(/^#\/?/, '');
     closeDrawer({ restoreFocus: false });
     if (sameRoute) render({ moveFocus: true });
 });
@@ -602,6 +613,7 @@ async function loadCollection(kind) {
 
 function refreshCollection(kind) {
     renderNav(kind);
+    renderFeatured();
     render({ moveFocus: false });
 }
 
@@ -624,9 +636,9 @@ const NAV_ICON_PATHS = {
     ],
 };
 
-function navIcon(kind) {
+function navIcon(kind, className = 'ws-nav-icon') {
     const svg = document.createElementNS(SVG_NS, 'svg');
-    svg.setAttribute('class', 'ws-nav-icon');
+    svg.setAttribute('class', className);
     svg.setAttribute('viewBox', '0 0 24 24');
     svg.setAttribute('width', '16');
     svg.setAttribute('height', '16');
@@ -998,6 +1010,86 @@ function buildExperience(x) {
         dl.append(el('dt', null, k), el('dd', null, v));
     });
     if (dl.hasChildNodes()) resourceSection('This role', dl);
+}
+
+// ---- Start here: featured sessions ----
+
+// Firestore document IDs of the records featured on Start here, in display
+// order. Each is looked up in the collections the sidebar already loaded (no
+// extra reads). A record that is missing is left out rather than linked.
+const FEATURED = [
+    { kind: 'experience', id: 'N5XsxkmBcUgzKAruBTs0' }, // ENDEAVR Institute
+    { kind: 'experience', id: 'XC4y3cgOpijSISQnMKtx' }, // Hanwha Life Insurance
+    { kind: 'projects', id: '9RhW01tkfsbhOF5ZVuF8' }, // IEEE Tech Website
+];
+
+const featuredBox = document.getElementById('start-featured');
+const featuredList = document.getElementById('start-featured-list');
+const featuredLabel = document.getElementById('start-featured-label');
+
+function featuredNote(message) {
+    return el('li', 'ws-featured-note', message);
+}
+
+function renderFeatured() {
+    const hadFocus = featuredList.contains(document.activeElement);
+    const items = [];
+    const failed = new Set();
+    let loading = false;
+
+    FEATURED.forEach(({ kind, id }) => {
+        const c = COLLECTIONS[kind];
+        if (c.state === 'loading') {
+            loading = true;
+            return;
+        }
+        if (c.state === 'error') {
+            failed.add(kind);
+            return;
+        }
+        const r = c.byId.get(id);
+        if (!r) return;
+
+        const a = el('a', 'ws-featured');
+        a.href = hrefFor(kind, r.id);
+        a.appendChild(navIcon(kind, 'ws-featured-icon'));
+        const label = el('span', 'ws-featured-text');
+        label.appendChild(el('span', 'ws-featured-title', c.name(r)));
+        // Experience: the company; project: just the kind. The hidden comma
+        // keeps the two apart in the link's accessible name.
+        const sub = kind === 'experience' ? r.company : 'Project';
+        if (sub) {
+            const span = el('span', 'ws-featured-sub');
+            span.append(el('span', 'ws-sr', ', '), sub);
+            label.appendChild(span);
+        }
+        a.appendChild(label);
+        const li = el('li');
+        li.appendChild(a);
+        items.push(li);
+    });
+
+    if (loading) items.push(featuredNote('Loading…'));
+    failed.forEach(kind => {
+        const note = featuredNote(`Couldn't load ${COLLECTIONS[kind].plural}.`);
+        const retry = el('button', 'ws-text-btn ws-text-btn-sm', 'Try again');
+        retry.type = 'button';
+        retry.addEventListener('click', () => loadCollection(kind));
+        note.appendChild(retry);
+        items.push(note);
+    });
+
+    featuredList.replaceChildren(...items);
+    // Nothing to show once everything has loaded: drop the section.
+    featuredBox.hidden = !items.length;
+
+    // e.g. "Try again" was pressed and has just been removed.
+    if (hadFocus) {
+        const target = featuredBox.hidden
+            ? document.getElementById('start-heading')
+            : featuredList.querySelector('a, button') || featuredLabel;
+        target.focus({ preventScroll: true });
+    }
 }
 
 // ---- Start ----

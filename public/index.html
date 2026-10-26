@@ -8,7 +8,7 @@
         content="Jaeshin Jung — portfolio of software engineering projects and experience.">
     <meta name="color-scheme" content="dark">
     <title>Jae — Jaeshin Jung | Portfolio</title>
-    <link rel="stylesheet" href="workspace.css?release=legacy-removed-20261025">
+    <link rel="stylesheet" href="workspace.css?release=start-here-20261025">
 </head>
 
 <body class="ws">
@@ -24,7 +24,7 @@
              dialog). -->
         <div class="ws-sidebar" id="ws-sidebar">
             <div class="ws-sidebar-head">
-                <a class="ws-brand" href="#about">
+                <a class="ws-brand" href="#start">
                     <span class="ws-brand-mark" aria-hidden="true">J</span>
                     <span class="ws-brand-text">
                         <span class="ws-brand-name">Jae</span>
@@ -40,6 +40,17 @@
             </div>
 
             <nav class="ws-nav" aria-label="Primary">
+                <!-- The workspace's landing view, like a "New chat" entry. -->
+                <ul class="ws-nav-start">
+                    <li><a class="ws-nav-link ws-nav-link-static ws-nav-link-start" href="#start" data-route="start">
+                            <svg class="ws-nav-icon" viewBox="0 0 24 24" width="16" height="16" fill="none"
+                                stroke="currentColor" stroke-width="1.75" stroke-linecap="round"
+                                stroke-linejoin="round" aria-hidden="true" focusable="false">
+                                <path d="M12 20h9" />
+                                <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                            </svg>
+                            <span class="ws-nav-text">Start here</span></a></li>
+                </ul>
                 <div class="ws-nav-group">
                     <h2 class="ws-nav-label" id="nav-intro">Introduction</h2>
                     <ul aria-labelledby="nav-intro">
@@ -98,17 +109,77 @@
                     </svg>
                 </button>
                 <p class="ws-crumb">
-                    <span class="ws-crumb-group" id="ws-crumb-group">Introduction</span>
+                    <span class="ws-crumb-group" id="ws-crumb-group">Jae</span>
                     <span class="ws-crumb-sep" aria-hidden="true">/</span>
-                    <span class="ws-crumb-page" id="ws-crumb-page">About</span>
+                    <span class="ws-crumb-page" id="ws-crumb-page">Start here</span>
                 </p>
             </header>
 
-            <div class="ws-content">
+            <!-- ws-content-start (one centred column, no Resources) is the
+                 markup default because Start is the default route;
+                 workspace.js toggles it with the route. -->
+            <div class="ws-content ws-content-start" id="ws-content">
                 <main class="ws-main" id="ws-main" tabindex="-1">
 
+                    <!-- Start here: the default view (no hash or #start). A
+                         landing page of prompt cards, not a chat: there is no
+                         input and nothing is generated. -->
+                    <section class="ws-view ws-start" id="view-start" data-view="start"
+                        aria-labelledby="start-heading">
+                        <p class="ws-start-hello">Hi, I'm Jaeshin.</p>
+                        <p class="ws-start-academic">CS Major / Game Design Minor at Texas A&amp;M University</p>
+                        <h1 id="start-heading" class="ws-view-heading ws-start-heading" tabindex="-1">What would you
+                            like to explore?</h1>
+
+                        <ul class="ws-start-cards">
+                            <li><a class="ws-start-card" href="#about">
+                                    <svg class="ws-start-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
+                                        aria-hidden="true" focusable="false">
+                                        <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" />
+                                        <path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1" />
+                                    </svg>
+                                    <span class="ws-start-card-text">Get to know me</span></a></li>
+                            <li><a class="ws-start-card" href="#projects">
+                                    <svg class="ws-start-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
+                                        aria-hidden="true" focusable="false">
+                                        <path
+                                            d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.7-.9L9.6 3.9A2 2 0 0 0 7.9 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z" />
+                                    </svg>
+                                    <span class="ws-start-card-text">Explore my projects</span></a></li>
+                            <li><a class="ws-start-card" href="#experience">
+                                    <svg class="ws-start-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
+                                        aria-hidden="true" focusable="false">
+                                        <path d="M4 7h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2Z" />
+                                        <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                                        <path d="M2 13h20" />
+                                    </svg>
+                                    <span class="ws-start-card-text">See my experience</span></a></li>
+                            <li><a class="ws-start-card" href="#contact">
+                                    <svg class="ws-start-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
+                                        aria-hidden="true" focusable="false">
+                                        <path d="M4 5h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z" />
+                                        <path d="m2 7 10 7 10-7" />
+                                    </svg>
+                                    <span class="ws-start-card-text">Get in touch</span></a></li>
+                        </ul>
+
+                        <!-- Featured sessions: links to existing records, built by
+                             workspace.js from the already-loaded collections.
+                             Hidden when none of them can be shown. -->
+                        <div class="ws-start-featured" id="start-featured">
+                            <h2 class="ws-section-label" id="start-featured-label" tabindex="-1">Featured sessions</h2>
+                            <ul class="ws-featured-list" id="start-featured-list" aria-labelledby="start-featured-label">
+                                <li class="ws-featured-note">Loading…</li>
+                            </ul>
+                        </div>
+                    </section>
+
                     <!-- Introduction / About: siteContent/home. -->
-                    <section class="ws-view" id="view-about" data-view="about" aria-labelledby="about-heading">
+                    <section class="ws-view" id="view-about" data-view="about" aria-labelledby="about-heading" hidden>
                         <div class="ws-hero">
                             <div class="ws-avatar">
                                 <img src="assets/jaeshin-profile.jpg" alt="Jaeshin Jung profile photo" id="home-img"
@@ -214,7 +285,7 @@
 
                 <!-- Resources: a right-hand card on wide screens, inline after
                      the content everywhere else. -->
-                <aside class="ws-resources" aria-labelledby="resources-heading">
+                <aside class="ws-resources" id="ws-resources" aria-labelledby="resources-heading" hidden>
                     <div class="ws-card">
                         <h2 class="ws-card-title" id="resources-heading">Resources</h2>
                         <!-- Links and details for the selected record. -->
@@ -234,7 +305,7 @@
         </div>
     </div>
 
-    <script type="module" src="workspace.js?release=legacy-removed-20261025"></script>
+    <script type="module" src="workspace.js?release=start-here-20261025"></script>
 </body>
 
 </html>
